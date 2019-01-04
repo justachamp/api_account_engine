@@ -3,6 +3,6 @@
   steps:
   - command: ./docker-entrypoint.sh bootstrap
   - command: python manage.py test
-#- service: awsdeployment
-#  tag: master
-#  command: codeship_aws eb_deploy /deploy CumploAccountEngine account-engine-master elasticbeanstalk-us-east-1-002311116463
+- service: awsdeployment
+  tag: master
+  command: codeship_aws eb_deploy /deploy CumploAccountEngine account-engine-master elasticbeanstalk-us-east-1-002311116463

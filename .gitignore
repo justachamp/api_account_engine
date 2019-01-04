@@ -97,3 +97,6 @@ include/python3\.6m
 .idea/vcs.xml
 
 
+#secret codeship aes
+cumplo_api_account_engine.aes
+aws-deployment.env
