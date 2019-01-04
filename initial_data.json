@@ -1,0 +1,38 @@
+[
+  {
+    "model": "accountEngineApp.AssetType",
+    "pk": 1,
+    "fields": {
+      "created": "2018-12-13T23:24:16.038Z",
+      "updated": "2018-12-13T23:24:16.038Z",
+      "description": "Peso chileno"
+    }
+  },
+  {
+    "model": "accountEngineApp.AssetType",
+    "pk": 2,
+    "fields": {
+      "created": "2018-12-13T23:24:16.038Z",
+      "updated": "2018-12-13T23:24:16.038Z",
+      "description": "Peso mexicano"
+    }
+  },
+  {
+    "model": "accountEngineApp.AssetType",
+    "pk": 2,
+    "fields": {
+      "created": "2018-12-13T23:24:16.038Z",
+      "updated": "2018-12-13T23:24:16.038Z",
+      "description": "Dolar EEUU"
+    }
+  },
+  {
+    "model": "accountEngineApp.AssetType",
+    "pk": 3,
+    "fields": {
+      "created": "2018-12-13T23:24:16.038Z",
+      "updated": "2018-12-13T23:24:16.038Z",
+      "description": "Euro"
+    }
+  }
+]
