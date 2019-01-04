@@ -6,7 +6,7 @@ account_engine:
   environment:
     RDS_DB_NAME: "accountengine"
     RDS_HOSTNAME: "mysql"
-    RDS_USERNAME: "account_engine"
+    RDS_USERNAME: "root"
     RDS_PORT: 3306
     RDS_PASSWORD: "lolo"
     PYTHONUNBUFFERED: 1
