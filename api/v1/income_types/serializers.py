@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from engine.models.account import Account
+from engine.models.journals import IncomeType
 
 
-class AccountSerializer(serializers.ModelSerializer):
+class IncomeTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Account
+        model = IncomeType
         fields = "__all__"

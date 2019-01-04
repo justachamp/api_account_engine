@@ -1,38 +1,65 @@
 [
   {
-    "model": "accountEngineApp.AssetType",
+    "model": "engine.batchstate",
     "pk": 1,
     "fields": {
-      "created": "2018-12-13T23:24:16.038Z",
-      "updated": "2018-12-13T23:24:16.038Z",
-      "description": "Peso chileno"
+      "created": "2018-12-26T20:05:55.751Z",
+      "updated": "2018-12-26T20:05:55.751Z",
+      "description": "Pendiente"
     }
   },
   {
-    "model": "accountEngineApp.AssetType",
+    "model": "engine.batchstate",
     "pk": 2,
     "fields": {
-      "created": "2018-12-13T23:24:16.038Z",
-      "updated": "2018-12-13T23:24:16.038Z",
-      "description": "Peso mexicano"
+      "created": "2019-01-02T19:31:04.394Z",
+      "updated": "2019-01-02T19:31:04.394Z",
+      "description": "En ejecuci\u00f3n"
     }
   },
   {
-    "model": "accountEngineApp.AssetType",
-    "pk": 2,
-    "fields": {
-      "created": "2018-12-13T23:24:16.038Z",
-      "updated": "2018-12-13T23:24:16.038Z",
-      "description": "Dolar EEUU"
-    }
-  },
-  {
-    "model": "accountEngineApp.AssetType",
+    "model": "engine.batchstate",
     "pk": 3,
     "fields": {
-      "created": "2018-12-13T23:24:16.038Z",
-      "updated": "2018-12-13T23:24:16.038Z",
-      "description": "Euro"
+      "created": "2019-01-02T19:31:12.358Z",
+      "updated": "2019-01-02T19:31:12.358Z",
+      "description": "Ejecutado"
+    }
+  },
+  {
+    "model": "engine.batchstate",
+    "pk": 4,
+    "fields": {
+      "created": "2019-01-02T19:31:19.109Z",
+      "updated": "2019-01-02T19:31:19.109Z",
+      "description": "Anulado"
+    }
+  },
+  {
+    "model": "engine.batchstate",
+    "pk": 5,
+    "fields": {
+      "created": "2019-01-02T19:31:27.550Z",
+      "updated": "2019-01-02T19:31:27.550Z",
+      "description": "Rechazado"
+    }
+  },
+  {
+    "model": "engine.assettype",
+    "pk": 1,
+    "fields": {
+      "created": "2018-12-27T20:07:35.881Z",
+      "updated": "2018-12-27T20:07:35.881Z",
+      "description": "CLP"
+    }
+  },
+  {
+    "model": "engine.incometype",
+    "pk": 1,
+    "fields": {
+      "created": "2018-12-27T20:06:51.130Z",
+      "updated": "2018-12-27T20:06:51.130Z",
+      "description": "1"
     }
   }
 ]

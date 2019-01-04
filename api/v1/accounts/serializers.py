@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from engine.models.users import User
+from engine.models.accounts import Account
 
 
-class UserSerializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = User
+        model = Account
         fields = "__all__"

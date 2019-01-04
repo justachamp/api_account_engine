@@ -1,8 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.account import Account
-from .serializers import AccountSerializer
+from engine.models.journals import IncomeType
+from .serializers import IncomeTypeSerializer
 
 
-class AccountViewSet(ModelViewSet):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
+class IncomeTypeViewSet(ModelViewSet):
+    queryset = IncomeType.objects.all()
+    serializer_class = IncomeTypeSerializer

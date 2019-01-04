@@ -1,8 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.accounts import Account
-from .serializers import AccountSerializer
+from engine.models.postings import Posting
+from .serializers import PostingSerializer
 
 
-class AccountViewSet(ModelViewSet):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
+class PostingViewSet(ModelViewSet):
+    queryset = Posting.objects.all()
+    serializer_class = PostingSerializer
