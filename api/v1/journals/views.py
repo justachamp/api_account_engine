@@ -1,11 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.journals import Journal, AssetType
-from .serializers import JournalSerializer, AssetTypeSerializer
-
-
-class AssetTypeViewSet(ModelViewSet):
-    queryset = AssetType.objects.all()
-    serializer_class = AssetTypeSerializer
+from engine.models.journals import Journal
+from .serializers import JournalSerializer
 
 
 class JournalViewSet(ModelViewSet):

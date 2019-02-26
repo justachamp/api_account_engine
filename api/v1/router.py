@@ -2,17 +2,17 @@ from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
 from .accounts.views import AccountViewSet
-from .income_types.views import IncomeTypeViewSet
-from .journals.views import JournalViewSet, AssetTypeViewSet
+#from .income_types.views import IncomeTypeViewSet
+from .journals.views import JournalViewSet
 from .batches.views import BatchStateViewSet, BatchDetail, BatchList
-from .postings.views import PostingViewSet
+from .postings.views import PostingViewSet, AssetTypeViewSet
 
 
 router = routers.DefaultRouter()
 
 # CAPA DE DATOS
 router.register(r'accounts', AccountViewSet)
-router.register(r'income_types', IncomeTypeViewSet)
+#router.register(r'income_types', IncomeTypeViewSet)
 router.register(r'asset_types', AssetTypeViewSet)
 router.register(r'batch_states', BatchStateViewSet)
 router.register(r'journals', JournalViewSet)

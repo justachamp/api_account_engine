@@ -8,6 +8,8 @@ from rest_framework import status
 from engine.models.batches import Batch, BatchState
 from .serializers import BatchSerializer, BatchStateSerializer, BatchPutSerializer
 
+from api.v1.services import payment_services
+
 
 class BatchStateViewSet(ModelViewSet):
     queryset = BatchState.objects.all()
@@ -19,6 +21,7 @@ class BatchList(APIView):
     List all batches or create a new batch with journals
     """
     def get(self, request, format=None):
+        print("GET BATCH!!!")
         """
         List all batches
         """
@@ -56,12 +59,35 @@ class BatchList(APIView):
         }
         :return: a new batch
         """
-        serializer = BatchSerializer(data=request.data, context={'request': request})
 
+        #try:
+        print("Flag 1 POST Batch!!!")
+        print(request)
+        serializer = BatchSerializer(data=request.data, context={'request': request})
+        print("Flag 2 POST Batch!!!")
         if serializer.is_valid():
+
+
+
+
+
+            # Servicio de Pago entre cuentas
+
+
+
+            # Si el servicio responde ok. Transacciones ok
+            # Si el servicio responde fail, entonces retornar mensaje de error
+
             serializer.save()
+            print("Flag 3 POST Batch!!!")
+            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        #except:
+
+            #return Response("Error", status=status.HTTP_400_BAD_REQUEST)
 
 
 class BatchDetail(APIView):

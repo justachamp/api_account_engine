@@ -1,12 +1,6 @@
 from rest_framework import serializers
-from engine.models.journals import Journal, AssetType
+from engine.models.journals import Journal
 
-
-class AssetTypeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = AssetType
-        fields = "__all__"
 
 
 class JournalSerializer(serializers.ModelSerializer):

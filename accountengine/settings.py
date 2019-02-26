@@ -75,7 +75,7 @@ WSGI_APPLICATION = 'accountengine.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-if 'RDS_DB_NAME' in os.environ:
+if 'RDS_DB_NAME_' in os.environ:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -131,19 +131,29 @@ else:
             'NAME': 'cumplo_accountengine',
             'ENGINE': 'django.db.backends.mysql',
             'USER': 'root',
-            'PASSWORD': os.environ.get('ORM_PASSWORD', 'lolo'),
+            'PASSWORD': os.environ.get('ORM_PASSWORD', ''),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+
         },
         'primary': {
             'NAME': 'cumplo_accountengine',
             'ENGINE': 'django.db.backends.mysql',
             'USER': 'root',
-            'PASSWORD': os.environ.get('ORM_PASSWORD', 'lolo'),
+            'PASSWORD': os.environ.get('ORM_PASSWORD', ''),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
         },
         'replica': {
             'NAME': 'cumplo_accountengine',
             'ENGINE': 'django.db.backends.mysql',
             'USER': 'root',
-            'PASSWORD': os.environ.get('ORM_PASSWORD', 'lolo'),
+            'PASSWORD': os.environ.get('ORM_PASSWORD', ''),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
         }
     }
 
