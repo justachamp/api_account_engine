@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.accounts import Account
-from .serializers import AccountSerializer
+from engine.models.accounts import Account, OperationAccount
+from .serializers import AccountSerializer, OperationAccountSerializer
 from django.http import Http404
 from rest_framework.views import APIView
 
@@ -8,6 +8,11 @@ from rest_framework.views import APIView
 class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
+
+
+class OperationAccountViewSet(ModelViewSet):
+    queryset = OperationAccount.objects.all()
+    serializer_class = OperationAccountSerializer
 
 
 

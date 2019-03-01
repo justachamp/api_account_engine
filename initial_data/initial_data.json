@@ -1,0 +1,30 @@
+[
+  {
+    "model": "engine.AssetType",
+    "pk": 1,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "CLP"
+    }
+  },
+  {
+    "model": "engine.AssetType",
+    "pk": 2,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "MXP"
+    }
+  },
+  {
+    "model": "engine.Journal_transaction_type",
+    "pk": 1,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "TEF"
+
+    }
+  }
+]

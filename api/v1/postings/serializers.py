@@ -10,8 +10,9 @@ class AssetTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class PostingSerializer(serializers.HyperlinkedModelSerializer):
 
-class PostingSerializer(serializers.ModelSerializer):
+
 
     class Meta:
         model = Posting

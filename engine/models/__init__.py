@@ -3,3 +3,4 @@ from .accounts import *
 from .batches import *
 from .journals import *
 from .postings import *
+from .payment_request import *

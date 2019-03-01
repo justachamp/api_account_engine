@@ -5,7 +5,7 @@ from engine.models.postings import Posting, Account, AssetType
 from decimal import Decimal
 
 
-class PostingSerializer(serializers.HyperlinkedModelSerializer):
+class PostingSerializer(serializers.ModelSerializer):
     """
     Serializer of Posting used in Journal
     """
@@ -19,14 +19,8 @@ class PostingSerializer(serializers.HyperlinkedModelSerializer):
         Create and return a new `Posting` instance, given the validated data.
         """
 
-        print('')
-
         #posting = Posting.objects.create(account=,journal=, amount=, assetType= )
         #journal = Journal.objects.create(**validated_data)
-
-
-
-
 
         return []#journal
 
@@ -41,7 +35,7 @@ class JournalSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Journal
-        fields = ('gloss', 'amount','postings')
+        fields = ('gloss', 'postings')
 
 
 
@@ -50,7 +44,7 @@ class JournalSerializer(serializers.HyperlinkedModelSerializer):
         Create and return a new `Journal` instance, given the validated data.
         """
 
-        journal = Journal.objects.create(amount=validated_data['amount'], gloss=validated_data['gloss'] , )
+        journal = Journal.objects.create( gloss=validated_data['gloss'] , )
 
         if journal.from_account == journal.to_account:
             message = 'Accounts must be different'
@@ -181,7 +175,7 @@ class BatchSerializer(serializers.HyperlinkedModelSerializer):
         for journal_data in journals_data:
             print(":::Flag 3.1 :::")
 
-            journal = Journal.objects.create(batch=batch, amount=journal_data['amount'], gloss=journal_data['gloss'])
+            journal = Journal.objects.create(batch=batch,  gloss=journal_data['gloss'])
 
             for posting_data in journal_data['postings']:
                 print(":::Flag 3.1.1 :::")
