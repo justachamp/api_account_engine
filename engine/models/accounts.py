@@ -29,6 +29,7 @@ class RealAccount(AbstractModel):
 class Account(AbstractModel):
     name = models.CharField(max_length=150)
     real_account = models.ForeignKey(RealAccount, null=True, on_delete=models.PROTECT)
+    external_account_id = models.CharField(unique=True, null=False, max_length=150)
 
 
 class OperationAccount(Account):

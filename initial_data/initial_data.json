@@ -26,5 +26,45 @@
       "description": "TEF"
 
     }
+  },
+   {
+    "model": "collection_module.DocumentType",
+    "pk": 1,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "Invoice"
+
+    }
+  },
+   {
+    "model": "collection_module.DocumentType",
+    "pk": 2,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "Promissory Note"
+
+    }
+  },
+  {
+    "model": "collection_module.CollectionState",
+    "pk": 1,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "state_description": "Pending"
+
+    }
+  },
+  {
+    "model": "collection_module.CollectionState",
+    "pk": 2,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "state_description": "Completed"
+
+    }
   }
 ]
