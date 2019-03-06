@@ -8,7 +8,6 @@ from rest_framework import status
 from engine.models.batches import Batch, BatchState
 from .serializers import BatchSerializer, BatchStateSerializer, BatchPutSerializer
 
-from api.v1.services import payment_services
 
 
 class BatchStateViewSet(ModelViewSet):

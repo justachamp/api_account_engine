@@ -30,11 +30,8 @@ class Account(AbstractModel):
     name = models.CharField(max_length=150)
     real_account = models.ForeignKey(RealAccount, null=True, on_delete=models.PROTECT)
     external_account_id = models.CharField(unique=True, null=False, max_length=150)
+    #TODO: Ver como ajustar los external_account_id a todo tipo de cuentas, de operacion, de personas o empresas. Llave compuesta parece ser la solucion
 
 
 class OperationAccount(Account):
     financing_amount = models.DecimalField(null=False, decimal_places=5, default=0, max_digits=20)
-    external_operacion_account_id= models.IntegerField(null=False, default=None, unique=True)
-
-
-

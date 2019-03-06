@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from engine.models.postings import Posting, AssetType
-from .serializers import PostingSerializer, AssetTypeSerializer
+from .serializers import  AssetTypeSerializer
+from engine.serializers.posting import PostingSerializer
 
 
 class AssetTypeViewSet(ModelViewSet):

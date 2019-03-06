@@ -5,7 +5,6 @@ from .serializers import VirtualAccountDepositSerializer
 from rest_framework.response import Response
 from django.forms.models import model_to_dict
 from django.core import serializers
-from ..services.payment_services import make_real_virtual_deposit_validation
 import json
 
 class VirtualAccountDeposit(APIView):
@@ -44,7 +43,6 @@ class VirtualAccountDeposit(APIView):
             data = serializer.save()
             print("Journal Save")
             print(data)
-            print(json)
             return Response(model_to_dict(data), status=status.HTTP_201_CREATED)
             #else:
 

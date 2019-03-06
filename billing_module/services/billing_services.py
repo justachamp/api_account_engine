@@ -15,7 +15,6 @@ class MakeBillingTransactionService(Service):
     billing_reason = forms.IntegerField(required=True)  # DecimalField(required=True, max_digits=20, decimal_places=5)
     external_operation_id = forms.IntegerField(required=True)
 
-    @property
     def process(self):
         billing_contact_number_input = self.cleaned_data['billing_contact_number']
         name_input = self.cleaned_data['name']

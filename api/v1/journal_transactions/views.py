@@ -3,7 +3,6 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .serializers import JournalTransactionsSerializer,JournalOperationTransactionsSerializer
-from ..services.payment_services import make_virtual_payment_materialization, make_virtual_balance_validation
 import json
 
 class JournalTransaction(APIView):

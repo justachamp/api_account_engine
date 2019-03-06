@@ -13,4 +13,3 @@ class Posting(AbstractModel):
     journal = models.ForeignKey(Journal, null=False, on_delete=models.PROTECT, related_name='postings')
     amount = models.DecimalField(null=False, default=0, max_digits=20, decimal_places=5)
     asset_type = models.ForeignKey(AssetType, default=1, null=False, on_delete=models.PROTECT)
-    #date = models.DateTimeField(editable=True)

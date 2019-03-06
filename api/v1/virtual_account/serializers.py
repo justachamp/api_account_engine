@@ -2,51 +2,38 @@ from rest_framework import serializers
 from engine.models.journals import Journal, Journal_transaction_type
 from engine.models.postings import Posting,AssetType
 from engine.models.accounts import Account
-
-
-from ..postings.serializers import PostingSerializer
-from rest_framework.renderers import JSONRenderer
-import json
-
-from django.db import IntegrityError
-# from apiUserAdminMex.exceptions.cumplo_exception import *
-from django.core.exceptions import ObjectDoesNotExist
+from engine.services.account_services import RealToVirtualDepositService
 
 
 class VirtualAccountDepositSerializer(serializers.Serializer):
     transaction_type = serializers.IntegerField(required=True)
-    real_account = serializers.IntegerField(required=True)
-    virtual_account = serializers.IntegerField(required=True)
+    real_account = serializers.CharField(required=True, max_length=150)
+    external_account_id = serializers.CharField(required=True, max_length=150)
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     asset_type = serializers.IntegerField(required=True)
 
+    def validate(self, data):
+        Account.objects.get(external_account_id=data['external_account_id'])
+        AssetType.objects.get(id=data['asset_type'])
+        return data
+
     def create(self, validated_data):
-        print("Flag 1")
-        transaction_type = Journal_transaction_type.objects.get(id=validated_data['transaction_type'])
+        destiny_account = Account.objects.get(external_account_id=validated_data['external_account_id'])
         asset_type = AssetType.objects.get(id=validated_data['asset_type'])
-        account = Account.objects.get(id=validated_data['virtual_account'])
-        print("Flag 2")
+        journal_transaction_type = Journal_transaction_type.objects.get(id=validated_data['asset_type'])
 
-        journal = Journal.objects.create(journal_transaction=transaction_type, gloss="", batch=None)
-        print("Flag 3")
-        print(str(journal))
+        posting = RealToVirtualDepositService.execute(
+            {
+                "real_account_id": validated_data['real_account'],
+                "virtual_account_id": destiny_account.id,
+                "asset_type_id": asset_type.id,
+                "transaction_type": journal_transaction_type.id,
+                "amount": validated_data['amount']
+            }
+        )
+        print("POSTING POST SERVICE")
 
-
-
-
-        posting = Posting.objects.create(account=account, journal=journal, amount=validated_data['amount'], asset_type=asset_type)
-
-
-
-
-
-
-
-
-        return journal
-
-
-
+        return posting
 
     def update(self, instance, validated_data):
         pass
