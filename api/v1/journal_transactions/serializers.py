@@ -4,6 +4,7 @@ from engine.models import Posting, Journal, Journal_transaction_type, Account, A
 from decimal import Decimal
 from django.db.models import Sum
 from django.forms.models import model_to_dict
+from engine.services.transfer_services import TransferToOperationAccountService
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 # from apiUserAdminMex.exceptions.cumplo_exception import *
@@ -25,9 +26,9 @@ class JournalTransactionsSerializer(serializers.Serializer):
             raise serializers.ValidationError("las cuentas de destino y origen son iguales")
 
         try:
-            Account.objects.get(id=data['to_account'])
+            investment_account = Account.objects.get(external_account_id=data['from_account'])
 
-            account_posting_amount = Posting.objects.filter(account=data['from_account']).aggregate(Sum('amount'))
+            account_posting_amount = Posting.objects.filter(account=investment_account).aggregate(Sum('amount'))
             # posting = Posting(account)
             print(account_posting_amount)
             if account_posting_amount['amount__sum'] is not None and account_posting_amount['amount__sum'] >= Decimal(
@@ -39,16 +40,18 @@ class JournalTransactionsSerializer(serializers.Serializer):
             raise serializers.ValidationError("la cuenta de destino debe ser una cuenta de operación")
 
     def create(self, validated_data):
-        journal_transaction = Journal_transaction_type.objects.get(id=validated_data['transaction_type'])
-        from_account = Account.objects.get(id=validated_data['from_account'])
-        to_account = Account.objects.get(id=validated_data['to_account'])
-        asset_type = AssetType.objects.get(id=validated_data['asset_type'])
-        journal = Journal.objects.create(batch=None, gloss="", journal_transaction=journal_transaction)
-        posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
-                                              amount=(Decimal(validated_data['amount']) * -1))
-        posting_to = Posting.objects.create(account=to_account, asset_type=asset_type, journal=journal,
-                                            amount=Decimal(validated_data['amount']))
-        return journal;
+
+        posting_response=TransferToOperationAccountService.execute(
+            {
+                'journal_transaction': validated_data['transaction_type'],
+                'from_account': validated_data['from_account'],
+                'to_operation_account_data': validated_data['to_account'],
+                'asset_type': validated_data['asset_type'],
+                'amount': validated_data['amount'],
+                }
+        )
+
+        return posting_response;
 
     def update(self, instance, validated_data):
         pass
@@ -75,8 +78,6 @@ class JournalOperationTransactionsSerializer(JournalTransactionsSerializer):
 
     def create(self, validated_data):
 
-
-
         #Get data for proccess
         journal_transaction = Journal_transaction_type.objects.get(id=validated_data['transaction_type'])
         from_account = Account.objects.get(id=validated_data['from_account'])
@@ -86,7 +87,6 @@ class JournalOperationTransactionsSerializer(JournalTransactionsSerializer):
         account_posting_operation_amount = Posting.objects.filter(account=validated_data['to_account']).aggregate(
             Sum('amount'))
         posting_operation_amount = Posting.objects.filter(account=validated_data['to_account'])
-
 
 
         #Create data for proccess

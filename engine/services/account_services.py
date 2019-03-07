@@ -2,6 +2,7 @@ from service_objects.services import Service
 from django import forms
 from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account
 from django.forms.models import model_to_dict
+from django.db.models import Sum
 
 
 class RealToVirtualDepositService(Service):
@@ -32,5 +33,25 @@ class RealToVirtualDepositService(Service):
                                               asset_type=asset_type)
 
         return posting_data
+
+
+class BalanceAccountService(Service):
+    external_account_id = forms.CharField(required=True, max_length=150)
+
+    def process(self):
+        try:
+            external_account_id_input = self.cleaned_data['external_account_id']
+
+            # Get Datas
+            account = Account.objects.get(external_account_id=external_account_id_input)
+
+            balance_account = Posting.objects.filter(account=account).aggregate(
+                Sum('amount'))
+
+            return balance_account
+        except Exception as e:
+            raise e;
+
+
 
 

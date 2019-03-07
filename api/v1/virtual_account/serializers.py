@@ -31,7 +31,6 @@ class VirtualAccountDepositSerializer(serializers.Serializer):
                 "amount": validated_data['amount']
             }
         )
-        print("POSTING POST SERVICE")
 
         return posting
 

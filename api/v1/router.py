@@ -1,9 +1,9 @@
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
-from .accounts.views import AccountViewSet, OperationAccountViewSet
+from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount
 #from .income_types.views import IncomeTypeViewSet
-from .journals.views import JournalViewSet,JournalTransactionTypeViewSet
+from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
 from .journal_transactions.views import JournalTransaction, JournalOperationTransaction
 
 
@@ -45,6 +45,7 @@ urlpatterns = [
     path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
     path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
+    path('account/balance/<int:pk>/', BalanceAccount.as_view()),
 
     #Modulo de cobranza y pagos
     path('payment_services/', PaymentTransaction.as_view(), name='payment-transaction'),
@@ -53,6 +54,7 @@ urlpatterns = [
     path('billing/add_billing_transaction', BillingTransaction.as_view(), name='add-billing-transaction'),
     path('billing/billing_payer/', BillingPayerView.as_view()),
     path('billing/billing_payer/<int:pk>/', BillingPayerView.as_view()),
+
 
 
 

@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .serializers import JournalTransactionsSerializer,JournalOperationTransactionsSerializer
+
 import json
 
 class JournalTransaction(APIView):
@@ -40,9 +41,9 @@ class JournalTransaction(APIView):
             #TODO: Validar que las cuentas no sean la misma
 
             #TODO: Validar transacciones por Materialización
-            #if make_virtual_payment_materialization(serializer.data['from_account'], serializer.data['amount']):
+
             json_data=serializer.save()
-            return Response(json_data, status=status.HTTP_200_OK)
+            return Response(json_data, status=status.HTTP_201_OK)
 
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -81,11 +82,11 @@ class JournalOperationTransaction(APIView):
         :return: a new journal
         """
 
-
         serializer= JournalOperationTransactionsSerializer(data=request.data)
         if serializer.is_valid():
             print("Estructura valida para JournalTransaction")
             #TODO: validar transacciones por doble partida, No aplica
+
 
             #TODO: Validar que las cuentas no sean la misma
 
