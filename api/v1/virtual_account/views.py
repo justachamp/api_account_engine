@@ -7,6 +7,7 @@ from django.forms.models import model_to_dict
 from django.core import serializers
 import json
 
+
 class VirtualAccountDeposit(APIView):
     """
     List all batches or create a new batch with journals
@@ -49,6 +50,9 @@ class VirtualAccountDeposit(APIView):
 
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 

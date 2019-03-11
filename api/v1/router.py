@@ -5,6 +5,7 @@ from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAcco
 #from .income_types.views import IncomeTypeViewSet
 from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
 from .journal_transactions.views import JournalTransaction, JournalOperationTransaction
+from .engine_account_transactions.views import TransactionAccountDetail
 
 
 
@@ -40,12 +41,28 @@ router.register(r'billing_reazon', BillingReasonViewSet)
 
 # CAPA LOGICA
 urlpatterns = [
+
+    #Motor de Cuentas
     path('batches/', BatchList.as_view(), name='batch-list'),
     path('batches/<int:pk>/', BatchDetail.as_view(), name='batch-detail'),
     path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
     path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
+
+    #S1
     path('account/balance/<int:pk>/', BalanceAccount.as_view()),
+
+    #S2
+    path('transaction/account_transaction/<str:pk>/', TransactionAccountDetail.as_view()),
+
+    #S3
+    path('account/balance/<str:pk>/', BalanceAccount.as_view()),
+
+    #S4
+    #path('bank_transfer/last_transfer_account_data/<str:pk>/', .as_view()),
+
+
+
 
     #Modulo de cobranza y pagos
     path('payment_services/', PaymentTransaction.as_view(), name='payment-transaction'),
@@ -55,6 +72,13 @@ urlpatterns = [
     path('billing/billing_payer/', BillingPayerView.as_view()),
     path('billing/billing_payer/<int:pk>/', BillingPayerView.as_view()),
 
+
+    #Modulo de Transferencias Bancarias
+    path('account/billing_payer/<str:pk>/', BillingPayerView.as_view()),
+
+
+    #modulo de Nóminas
+    path('transaction/account_transaction/<str:pk>/', BillingPayerView.as_view()),
 
 
 

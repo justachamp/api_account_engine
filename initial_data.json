@@ -6,7 +6,7 @@
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
       "description": "CLP"
-    }
+      }
   },
   {
     "model": "engine.AssetType",
@@ -23,7 +23,27 @@
     "fields": {
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
-      "description": "TEF"
+      "description": "Transferencia desde cuenta Real a Virtual"
+
+    }
+  },
+  {
+    "model": "engine.Journal_transaction_type",
+    "pk": 2,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "Transferencia desde cuenta Virtual a Real"
+
+    }
+  },
+   {
+    "model": "engine.Journal_transaction_type",
+    "pk": 3,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "Transferencia desde cuenta Virtual a cuenta de Operación"
 
     }
   },
