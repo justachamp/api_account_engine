@@ -10,15 +10,15 @@ LOGGING = {
 		}
 	},
 	'handlers':{
-		'errors_file':{
-			'level':'ERROR',
-		       'class':'logging.handlers.TimedRotatingFileHandler',
+		'info_file':{
+			'level':'INFO',
+			   'class':'logging.handlers.TimedRotatingFileHandler',
 			'when':'midnight',
 			'interval':1,
 			'filename':'logs/ErrorLoggers.log',
 			'formatter':'large',
-		},
-		'info_file':{
+			},
+		'errors_file':{
 			'level':'INFO',
 		       'class':'logging.handlers.TimedRotatingFileHandler',
 			'when':'midnight',
@@ -26,11 +26,12 @@ LOGGING = {
 			'filename':'logs/InfoLoggers.log',
 			'formatter':'large',
 		},
+
 	},
 	'loggers':{
 		'error_logger':{
 			'handlers':['errors_file'],
-			'level':'WARNING',
+			'level':'INFO',
 			'propagate':False,
 		},
 		'info_logger':{

@@ -3,7 +3,7 @@ from engine.models.accounts import Account, OperationAccount
 from .serializers import AccountSerializer, OperationAccountSerializer
 from django.http import Http404
 from rest_framework.views import APIView
-from engine.services.account_services import BalanceAccountService
+from engine.services.account_services import BalanceAccountService, PositiveBalanceAccountService
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -20,20 +20,37 @@ class OperationAccountViewSet(ModelViewSet):
 
 class BalanceAccount(APIView):
 
-    def get(self, request, pk):
+    def get(self, request, ext_account_id, ext_account_type  ):
+
+        print(ext_account_id)
+        print(ext_account_type)
+
+
 
         try:
             balance_account = BalanceAccountService.execute(
-                {
-                    "external_account_id": pk
-                }
+                 {
+                     "external_account_id": ext_account_id,
+                     "external_account_type_id":ext_account_type
+                 }
             )
 
             return Response(balance_account, status=status.HTTP_200_OK)
         except Exception as e:
+            print(str(e))
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
+class PositiveBalanceAccount(APIView):
+
+    def get(self, request):
+
+        try:
+            positive_balance_data = PositiveBalanceAccountService.execute({})
+            print(positive_balance_data)
+            return Response(positive_balance_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 #

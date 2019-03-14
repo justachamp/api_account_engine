@@ -34,7 +34,7 @@ class VirtualAccountDeposit(APIView):
         :return: a new journal
         """
 
-
+        print("Flag 1")
         serializer= VirtualAccountDepositSerializer(data=request.data)
         if serializer.is_valid():
             print("Estructura valida para VirtualAccountDepositSerializer")

@@ -5,16 +5,17 @@ from rest_framework.views import APIView
 from engine.services.transaction_services import GetClientTransaction
 from rest_framework.response import Response
 from rest_framework import status
+import logging
 
 
 class TransactionAccountDetail(APIView):
 
-    def get(self, request, pk):
-
+    def get(self, request, external_account_id, external_account_type):
         try:
             balance_account = GetClientTransaction.execute(
                 {
-                    "external_account_id": pk
+                    "external_account_id": external_account_id,
+                    "external_account_type": external_account_type
                 }
             )
 

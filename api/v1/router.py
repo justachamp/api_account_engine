@@ -1,10 +1,11 @@
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
-from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount
+from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount, PositiveBalanceAccount
 #from .income_types.views import IncomeTypeViewSet
 from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
-from .journal_transactions.views import JournalTransaction, JournalOperationTransaction
+from .journal_transactions.views import JournalTransaction, JournalOperationTransaction,\
+    JournalOperationInvestmentTransaction
 from .engine_account_transactions.views import TransactionAccountDetail
 
 
@@ -47,13 +48,16 @@ urlpatterns = [
     path('batches/<int:pk>/', BatchDetail.as_view(), name='batch-detail'),
     path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
     path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
+    path('journal_transactions/financing_operation/investment', JournalOperationInvestmentTransaction.as_view()),
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
 
     #S1
-    path('account/balance/<int:pk>/', BalanceAccount.as_view()),
+    path('account/balance/external_account_id/<str:ext_account_id>/external_account_type/<str:ext_account_type>/', BalanceAccount.as_view()),
+
+    path('account/positive_balance/', PositiveBalanceAccount.as_view()),
 
     #S2
-    path('transaction/account_transaction/<str:pk>/', TransactionAccountDetail.as_view()),
+    path('transaction/account_transaction/<str:external_account_id>/<int:external_account_type>/', TransactionAccountDetail.as_view()),
 
     #S3
     path('account/balance/<str:pk>/', BalanceAccount.as_view()),
@@ -78,7 +82,7 @@ urlpatterns = [
 
 
     #modulo de Nóminas
-    path('transaction/account_transaction/<str:pk>/', BillingPayerView.as_view()),
+    path('transaction/account_transactionssss/<str:pk>/', BillingPayerView.as_view()),
 
 
 

@@ -18,6 +18,33 @@
     }
   },
   {
+    "model": "engine.AccountType",
+    "pk": 1,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "account_type": "Empresa"
+      }
+  },
+   {
+    "model": "engine.AccountType",
+    "pk": 2,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "account_type": "Persona"
+      }
+  },
+  {
+    "model": "engine.AccountType",
+    "pk": 3,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "account_type": "Operación"
+      }
+  },
+  {
     "model": "engine.Journal_transaction_type",
     "pk": 1,
     "fields": {

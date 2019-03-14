@@ -26,12 +26,25 @@ class RealAccount(AbstractModel):
     email = models.CharField(max_length=150)
 
 
+class AccountType(AbstractModel):
+    account_type = models.CharField(unique=True, null=False, max_length=150)
+
+
 class Account(AbstractModel):
     name = models.CharField(max_length=150)
     real_account = models.ForeignKey(RealAccount, null=True, on_delete=models.PROTECT)
-    external_account_id = models.CharField(unique=True, null=False, max_length=150)
-    #TODO: Ver como ajustar los external_account_id a todo tipo de cuentas, de operacion, de personas o empresas. Llave compuesta parece ser la solucion
+    external_account_id = models.CharField(null=False, max_length=150)
+    external_account_type = models.ForeignKey(AccountType, null=False,  on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ('external_account_id', 'external_account_type')
+    primary = ('external_account_id', 'external_account_type')
 
 
 class OperationAccount(Account):
     financing_amount = models.DecimalField(null=False, decimal_places=5, default=0, max_digits=20)
+
+
+class DWHBalanceAccount(AbstractModel):
+    balance_account_amount = models.DecimalField( null=False, decimal_places=5, default=0, max_digits=20)
+    account = models.OneToOneField(Account, unique=True, null=True, on_delete=models.PROTECT)

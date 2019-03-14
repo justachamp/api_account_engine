@@ -1,19 +1,32 @@
+import logging
 from decimal import Decimal
 
+from service_objects.fields import MultipleFormField
 from service_objects.services import Service
 from django import forms
 from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, OperationAccount
 from django.forms.models import model_to_dict
 
 
-class GetClientTransaction(Service):
+
+class CumploService(Service):
+    pass
+
+
+class GetClientTransaction(CumploService):
+
     external_account_id = forms.CharField(required=True, max_length=150)
+    external_account_type = forms.IntegerField(required=True)
 
     def process(self):
+
+
+
         external_account_id_input = self.cleaned_data['external_account_id']
+        external_account_type_input = self.cleaned_data['external_account_type']
 
         # Get Data for proccess
-        account = Account.objects.get(external_account_id=external_account_id_input)
+        account = Account.objects.get(external_account_id=external_account_id_input,external_account_type_id=external_account_type_input)
         account_posting= Posting.objects.filter(account=account)
 
         # Create collecting record
@@ -22,15 +35,6 @@ class GetClientTransaction(Service):
             list_posting.append(model_to_dict(posting))
 
         return list_posting
-
-
-
-
-
-
-
-
-
 
 
 class GetClientVirtualTransaction(Service):
@@ -103,6 +107,26 @@ class GetClientRealTransaction(Service):
         return {"from": posting_from, "to": posting_to}
 
 
+class InvestmentCostForm(forms.Form):
+    type = forms.IntegerField(required=True)
+    amount = forms.DecimalField(required=True)
 
 
+class FinanceOperationByInvestmentTransaction(Service):
+    account = forms.IntegerField(required=True)
+    investment_id = forms.IntegerField(required=True)
+    total_amount = forms.DecimalField(required=True)
+    investment_amount = forms.DecimalField(required=True)
+    investment_cost = MultipleFormField(InvestmentCostForm)
 
+
+    def process(self):
+        account = self.cleaned_data['account']
+        investment_id = self.cleaned_data['investment_id']
+        total_amount = self.cleaned_data['total_amount']
+        investment_amount = self.cleaned_data['investment_amount']
+        investment_cost = self.cleaned_data['investment_cost']
+
+        #account = Account.objects.get(external_account_id=account)
+
+        return 123
