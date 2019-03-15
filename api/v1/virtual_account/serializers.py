@@ -6,12 +6,13 @@ from engine.services.account_services import RealToVirtualDepositService
 
 
 class VirtualAccountDepositSerializer(serializers.Serializer):
-    transaction_type = serializers.IntegerField(required=True)
+    #transaction_type = serializers.IntegerField(required=True)
     real_account = serializers.CharField(required=True, max_length=150)
     external_account_id = serializers.CharField(required=True, max_length=150)
     external_account_type = serializers.CharField(required=True, max_length=150)
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     asset_type = serializers.IntegerField(required=True)
+    deposit_date = serializers.DateField(required=True)
 
     def validate(self, data):
         try:
@@ -32,8 +33,9 @@ class VirtualAccountDepositSerializer(serializers.Serializer):
                 "real_account_id": validated_data['real_account'],
                 "virtual_account_id": destiny_account.id,
                 "asset_type_id": asset_type.id,
-                "transaction_type": journal_transaction_type.id,
-                "amount": validated_data['amount']
+                "transaction_type": 1,
+                "amount": validated_data['amount'],
+                "deposit_date" : validated_data['deposit_date']
             }
         )
 

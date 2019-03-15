@@ -14,6 +14,7 @@ class RealToVirtualDepositService(Service):
     asset_type_id = forms.IntegerField(required=True)
     amount = forms.DecimalField(required=True, max_digits=20, decimal_places=5)
     transaction_type = forms.IntegerField(required=True)
+    deposit_date = forms.DateField(required=True)
 
     def process(self):
         try:
@@ -23,6 +24,7 @@ class RealToVirtualDepositService(Service):
             asset_type_id_input = self.cleaned_data['asset_type_id']
             amount_input = self.cleaned_data['amount']
             transaction_type_input = self.cleaned_data['transaction_type']
+            deposit_date_input = self.cleaned_data['deposit_date']
 
             # Get Datas
             transaction_type = Journal_transaction_type.objects.filter(id=transaction_type_input)[0:1].get()
@@ -30,7 +32,7 @@ class RealToVirtualDepositService(Service):
             account = Account.objects.get(id=virtual_account_id_input)
 
             # Create collecting record
-            journal = Journal.objects.create(journal_transaction=transaction_type, gloss=transaction_type.description,
+            journal = Journal.objects.create(journal_transaction=transaction_type, gloss=transaction_type.description+", deposit date:"+str(deposit_date_input),
                                              batch=None)
 
             posting_data = Posting.objects.create(account=account, journal=journal, amount=amount_input,

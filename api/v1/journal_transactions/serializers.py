@@ -251,8 +251,8 @@ class InvesmentCostSerializer(serializers.Serializer):
 
 
 class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
-    external_account_id = serializers.CharField(required=True)
-    external_account_type = serializers.IntegerField(required=True)
+    investor_account_id = serializers.CharField(required=True)
+    investor_account_type = serializers.IntegerField(required=True)
     external_operation_id = serializers.CharField(required=True)
     investment_id = serializers.IntegerField(required=True)
     total_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
