@@ -18,7 +18,8 @@ class SqsService:
         print("SQS Services MSG!!!!")
         print(msg)
         queue = sqs.get_queue_by_name(QueueName=queue_name)
-
+        # import ipdb
+        # ipdb.set_trace()
         try:
             queue.send_message(QueueUrl=url, MessageBody=msg)
             return True

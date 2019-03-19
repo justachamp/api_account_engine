@@ -6,6 +6,7 @@ from service_objects.services import Service
 from django import forms
 from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, OperationAccount
 from django.forms.models import model_to_dict
+from sqs_services.services import SqsService
 
 
 
@@ -45,6 +46,7 @@ class GetClientVirtualTransaction(Service):
     amount = forms.DecimalField(required=True)
 
     def process(self):
+        print("Transaction")
         journal_transaction_input = self.cleaned_data['journal_transaction']
         from_account_input = self.cleaned_data['from_account']
         to_account_input = self.cleaned_data['to_account']
@@ -64,6 +66,7 @@ class GetClientVirtualTransaction(Service):
 
         posting_to = Posting.objects.create(account=to_operation_account_data, asset_type=asset_type_data, journal=journal_for_operation_transfer,
                                             amount=Decimal(amount_input))
+
 
         # Create collecting record
 
@@ -126,6 +129,16 @@ class FinanceOperationByInvestmentTransaction(Service):
         total_amount = self.cleaned_data['total_amount']
         investment_amount = self.cleaned_data['investment_amount']
         investment_cost = self.cleaned_data['investment_cost']
+
+        sqs = SqsService(json_data={"result": True,
+                                    "message" : "TODO OK",
+                                    "investment_id":3,
+                                    "investor_type":1
+                                    })
+        sqs.push('response-engine-pay-investment')
+
+
+
 
         #account = Account.objects.get(external_account_id=account)
 
