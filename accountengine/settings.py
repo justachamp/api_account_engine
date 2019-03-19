@@ -217,3 +217,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
+AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID_TREASURY')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY_TREASURY')
+TREASURY_SQS_URL = os.environ.get('TREASURY_SQS_URL')

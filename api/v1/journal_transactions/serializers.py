@@ -297,4 +297,4 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
                 'asset_type': 1
             }
         )
-        return model_to_dict(algo)
+        return algo

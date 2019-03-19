@@ -7,6 +7,7 @@ from django import forms
 from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, OperationAccount
 from django.forms.models import model_to_dict
 from engine.services.account_services import DwhAccountAmountService
+from sqs_services.services import SqsService
 
 CUMPLO_COST_ACCOUNT= 1
 
@@ -185,4 +186,11 @@ class FinanceOperationByInvestmentTransaction(Service):
             }
         )
 
-        return journal
+        sqs = SqsService(json_data={"result": True,
+                                    "message": "TODO OK",
+                                    "investment_id": investment_id,
+                                    "investor_type": 1
+                                    })
+        sqs.push('response-engine-pay-investment')
+
+        return model_to_dict(journal)

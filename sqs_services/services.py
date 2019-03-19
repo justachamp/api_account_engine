@@ -1,6 +1,6 @@
 import boto3
-from rest_framework.utils import json
 from django.conf import settings
+from rest_framework.utils import json
 
 
 class SqsService:
@@ -15,8 +15,11 @@ class SqsService:
 
         url = f"{settings.TREASURY_SQS_URL}{queue_name}"
         msg = json.dumps(self.json_data)
+        print("SQS Services MSG!!!!")
+        print(msg)
         queue = sqs.get_queue_by_name(QueueName=queue_name)
-
+        # import ipdb
+        # ipdb.set_trace()
         try:
             queue.send_message(QueueUrl=url, MessageBody=msg)
             return True
