@@ -45,6 +45,28 @@
       }
   },
   {
+    "model": "engine.AccountType",
+    "pk": 4,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "account_type": "Cuenta Costos Cumplo"
+      }
+  },
+    {
+      "model": "engine.Account",
+      "pk": 1,
+      "fields": {
+      "name": "Cumplo Asesorias",
+      "real_account": null,
+      "external_account_id": 1,
+      "external_account_type": 4,
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z"
+      }
+  },
+
+  {
     "model": "engine.Journal_transaction_type",
     "pk": 1,
     "fields": {
@@ -71,6 +93,16 @@
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
       "description": "Transferencia desde cuenta Virtual a cuenta de Operación"
+
+    }
+  },
+    {
+    "model": "engine.Journal_transaction_type",
+    "pk": 4,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "Financiamiento de operación por Inversión"
 
     }
   },

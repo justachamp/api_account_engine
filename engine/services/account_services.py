@@ -81,5 +81,21 @@ class PositiveBalanceAccountService(Service):
             raise e;
 
 
+class DwhAccountAmountService(Service):
+
+    account_id = forms.CharField(required=True, max_length=150)
+
+    def process(self):
+        account_id_input = self.cleaned_data['account_id']
+        account_to_update = Account.objects.get(id=account_id_input)
+        dwh_balance_account = Posting.objects.filter(account=account_to_update).aggregate(Sum('amount'))
+        balance_update=DWHBalanceAccount.objects.update_or_create(account=account_to_update, defaults={
+                'balance_account_amount': dwh_balance_account['amount__sum']})
+
+        return balance_update
+
+
+
+
 
 

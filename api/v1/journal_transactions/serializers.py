@@ -115,6 +115,7 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
             raise serializers.ValidationError("la cuenta de destino debe ser una cuenta de operación")
 
     def create(self, validated_data):
+        #TODO: pasar a un servicio independiente encargado de registrar las transacciones
         # Get data for proccess
         journal_transaction = Journal_transaction_type.objects.get(id=validated_data['transaction_type'])
         from_account = Account.objects.get(external_account_id=validated_data['from_account']['external_account_id'],
@@ -280,13 +281,20 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
 
     def create(self, validated_data):
 
+        investor_account=Account.objects.get(external_account_id=validated_data['investor_account_id'], external_account_type_id=validated_data['investor_account_type'])
+
+        print("validated_data['external_operation_id']")
+        print(validated_data['external_operation_id'])
         algo = FinanceOperationByInvestmentTransaction.execute(
             {
-                'account' : 123,
-                'investment_id' : 123,
-                'total_amount' : 10000,
-                'investment_amount' : 10000,
-                'investment_cost' : validated_data['investment_cost']
+                'account' : investor_account.id,
+                'investment_id' : validated_data['investment_id'],
+                'total_amount' : validated_data['total_amount'],
+                'investment_amount' : validated_data['investment_amount'],
+                'investment_costs' : validated_data['investment_cost'],
+                'external_operation_id': validated_data['external_operation_id'],
+                #TODO: definir el asset_type según sistema con que interactura
+                'asset_type': 1
             }
         )
-        return algo
+        return model_to_dict(algo)

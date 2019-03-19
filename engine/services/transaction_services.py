@@ -6,8 +6,9 @@ from service_objects.services import Service
 from django import forms
 from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, OperationAccount
 from django.forms.models import model_to_dict
+from engine.services.account_services import DwhAccountAmountService
 
-
+CUMPLO_COST_ACCOUNT= 1
 
 class CumploService(Service):
     pass
@@ -19,8 +20,6 @@ class GetClientTransaction(CumploService):
     external_account_type = forms.IntegerField(required=True)
 
     def process(self):
-
-
 
         external_account_id_input = self.cleaned_data['external_account_id']
         external_account_type_input = self.cleaned_data['external_account_type']
@@ -117,16 +116,73 @@ class FinanceOperationByInvestmentTransaction(Service):
     investment_id = forms.IntegerField(required=True)
     total_amount = forms.DecimalField(required=True)
     investment_amount = forms.DecimalField(required=True)
-    investment_cost = MultipleFormField(InvestmentCostForm)
-
+    investment_costs = MultipleFormField(InvestmentCostForm)
+    external_operation_id = forms.IntegerField(required=True)
+    asset_type = forms.IntegerField(required=True)
 
     def process(self):
+        #TODO: modificar este valor en duro
+        transaction_type = 4 #Financiamiento de operación por Inversión
+        #Get Data
         account = self.cleaned_data['account']
         investment_id = self.cleaned_data['investment_id']
         total_amount = self.cleaned_data['total_amount']
         investment_amount = self.cleaned_data['investment_amount']
-        investment_cost = self.cleaned_data['investment_cost']
+        investment_costs = self.cleaned_data['investment_costs']
+        external_operation_id  = self.cleaned_data['external_operation_id']
+        asset_type = self.cleaned_data['asset_type']
 
-        #account = Account.objects.get(external_account_id=account)
 
-        return 123
+        #Get and Process Data
+        #TODO: definir transacción de financimiento
+        journal_transaction = Journal_transaction_type.objects.get(id=transaction_type)
+        from_account = Account.objects.get(id=account)
+
+        to_operation_account = OperationAccount.objects.get(external_account_id=external_operation_id)
+
+        asset_type = AssetType.objects.get(id=asset_type)
+        #Traigo la cuenta de cumplo asesorias
+        cumplo_cost_account = Account.objects.get(id=CUMPLO_COST_ACCOUNT)
+
+
+
+        #Create Data
+        ################################################################################################################
+        ################################################################################################################
+
+
+        #Creacion de asiento
+        journal = Journal.objects.create(batch=None, gloss=journal_transaction.description, journal_transaction=journal_transaction)
+
+
+        #Descuento a la cuenta del inversionista
+        posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
+                                              amount=(Decimal(total_amount) * -1))
+
+
+        # Asignacion de inversionista a operacion
+        posting_to = Posting.objects.create(account=to_operation_account, asset_type=asset_type, journal=journal,
+                                            amount=Decimal(investment_amount))
+
+
+        # asignacion de inversionista a costos cumplo
+        for investment_cost in investment_costs:
+            # asignacion de inversionista a costos cumplo
+            print("investment_cost")
+            print(investment_cost)
+
+            if investment_cost.cleaned_data['type'] == 1:
+
+                posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
+                                                amount=Decimal(investment_cost.cleaned_data['amount']))
+
+            else:
+                print("Error")
+
+        DwhAccountAmountService.execute(
+            {
+                'account_id': from_account.id
+            }
+        )
+
+        return journal
