@@ -10,14 +10,15 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class OperationAccountSerializer(serializers.Serializer):
-    external_account_id = serializers.CharField(required=True, max_length=150)
-    name = serializers.CharField(required=True, max_length=150)
+    operation_id = serializers.CharField(required=True, max_length=150)
+    requester_id = serializers.CharField(required=True, max_length=150)
+    #name = serializers.CharField(required=True, max_length=150)
     financing_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
 
     #TODO: Ver tema de manejo de error como respuesta de Backend
     def create(self, validated_data):
         try:
-            create_operation = OperationAccount.objects.create(external_account_id=validated_data['external_account_id'],
+            create_operation = OperationAccount.objects.create(external_account_id=validated_data['operation_id'],
                                                                name=validated_data['name'],
                                                                financing_amount=validated_data['financing_amount'],
                                                                external_account_type_id=3)

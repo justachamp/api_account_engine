@@ -189,7 +189,7 @@ class FinanceOperationByInvestmentTransaction(Service):
         sqs = SqsService(json_data={"result": True,
                                     "message": "TODO OK",
                                     "investment_id": investment_id,
-                                    "investor_type": 1
+                                    "investor_type": from_account.external_account_type.id
                                     })
         sqs.push('response-engine-pay-investment')
 
