@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from engine.models.accounts import Account, OperationAccount, AccountType
 from engine.services.account_services import BalanceAccountService
+from django.forms.models import model_to_dict
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -10,6 +11,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class OperationAccountSerializer(serializers.Serializer):
+
     operation_id = serializers.CharField(required=True, max_length=150)
     requester_id = serializers.CharField(required=True, max_length=150)
     #name = serializers.CharField(required=True, max_length=150)
@@ -18,11 +20,12 @@ class OperationAccountSerializer(serializers.Serializer):
     #TODO: Ver tema de manejo de error como respuesta de Backend
     def create(self, validated_data):
         try:
+            name="operacion "+str(validated_data['operation_id'])
             create_operation = OperationAccount.objects.create(external_account_id=validated_data['operation_id'],
-                                                               name=validated_data['name'],
+                                                               name=name,
                                                                financing_amount=validated_data['financing_amount'],
                                                                external_account_type_id=3)
-            return create_operation
+            return model_to_dict(create_operation)
         except Exception as e:
             raise e
 

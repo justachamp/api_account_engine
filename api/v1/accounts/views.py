@@ -18,6 +18,34 @@ class OperationAccountViewSet(ModelViewSet):
     serializer_class = OperationAccountSerializer
 
 
+class OperationAccount(APIView):
+
+    def post(self, request, format=None):
+        """
+        Create a new Batch with this format
+        {
+            "transaction_type":1,
+            "from_account":1,
+            "to_account":2,
+            "amount":9900,
+            "asset_type":1
+        }
+
+        :return: a new journal
+        """
+
+        serializer= OperationAccountSerializer(data=request.data)
+        if serializer.is_valid():
+            print("Estructura valida para JournalTransaction")
+
+            json_data=serializer.save()
+            return Response(json_data, status=status.HTTP_200_OK)
+
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 class BalanceAccount(APIView):
 
     def get(self, request, ext_account_id, ext_account_type  ):
