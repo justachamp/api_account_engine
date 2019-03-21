@@ -117,7 +117,7 @@ class FinanceOperationByInvestmentTransaction(Service):
     investment_id = forms.IntegerField(required=True)
     total_amount = forms.DecimalField(required=True)
     investment_amount = forms.DecimalField(required=True)
-    investment_costs = MultipleFormField(InvestmentCostForm)
+    investment_costs = MultipleFormField(InvestmentCostForm, required=False)
     external_operation_id = forms.IntegerField(required=True)
     asset_type = forms.IntegerField(required=True)
 
@@ -167,30 +167,31 @@ class FinanceOperationByInvestmentTransaction(Service):
 
 
         # asignacion de inversionista a costos cumplo
-        for investment_cost in investment_costs:
-            # asignacion de inversionista a costos cumplo
-            print("investment_cost")
-            print(investment_cost)
+        if investment_costs:
+            for investment_cost in investment_costs:
+                # asignacion de inversionista a costos cumplo
+                print("investment_cost")
+                print(investment_cost)
 
-            if investment_cost.cleaned_data['type'] == 1:
+                if investment_cost.cleaned_data['type'] == 1:
 
-                posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
-                                                amount=Decimal(investment_cost.cleaned_data['amount']))
+                    posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
+                                                    amount=Decimal(investment_cost.cleaned_data['amount']))
 
-            else:
-                print("Error")
+                else:
+                    print("Error")
 
-        DwhAccountAmountService.execute(
-            {
-                'account_id': from_account.id
-            }
-        )
+            DwhAccountAmountService.execute(
+                {
+                    'account_id': from_account.id
+                }
+            )
 
-        sqs = SqsService(json_data={"result": True,
-                                    "message": "TODO OK",
-                                    "investment_id": investment_id,
-                                    "investor_type": from_account.external_account_type.id
-                                    })
-        sqs.push('response-engine-pay-investment')
+            sqs = SqsService(json_data={"result": True,
+                                        "message": "TODO OK",
+                                        "investment_id": investment_id,
+                                        "investor_type": from_account.external_account_type.id
+                                        })
+            sqs.push('response-engine-pay-investment')
 
         return model_to_dict(journal)
