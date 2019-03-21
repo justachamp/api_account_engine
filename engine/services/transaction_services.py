@@ -181,17 +181,17 @@ class FinanceOperationByInvestmentTransaction(Service):
                 else:
                     print("Error")
 
-            DwhAccountAmountService.execute(
-                {
-                    'account_id': from_account.id
-                }
-            )
+        DwhAccountAmountService.execute(
+            {
+                'account_id': from_account.id
+            }
+        )
 
-            sqs = SqsService(json_data={"result": True,
-                                        "message": "TODO OK",
-                                        "investment_id": investment_id,
-                                        "investor_type": from_account.external_account_type.id
-                                        })
-            sqs.push('response-engine-pay-investment')
+        sqs = SqsService(json_data={"result": True,
+                                    "message": "TODO OK",
+                                    "investment_id": investment_id,
+                                    "investor_type": from_account.external_account_type.id
+                                    })
+        sqs.push('response-engine-pay-investment')
 
         return model_to_dict(journal)
