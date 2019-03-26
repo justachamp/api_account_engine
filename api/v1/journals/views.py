@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.journals import Journal, Journal_transaction_type
+from engine.models.journals import Journal, JournalTransactionType
 from .serializers import JournalSerializer, JournalTransactionTypeSerializer
 from django.http import Http404
 from rest_framework.views import APIView
@@ -13,7 +13,7 @@ class JournalViewSet(ModelViewSet):
 
 
 class JournalTransactionTypeViewSet(ModelViewSet):
-    queryset = Journal_transaction_type.objects.all()
+    queryset = JournalTransactionType.objects.all()
     serializer_class = JournalTransactionTypeSerializer
 
 

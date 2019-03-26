@@ -1,6 +1,6 @@
 from service_objects.services import Service
 from django import forms
-from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, DWHBalanceAccount
+from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, DWHBalanceAccount
 from django.forms.models import model_to_dict
 from django.db.models import Sum
 import logging
@@ -27,7 +27,7 @@ class RealToVirtualDepositService(Service):
             deposit_date_input = self.cleaned_data['deposit_date']
 
             # Get Datas
-            transaction_type = Journal_transaction_type.objects.filter(id=transaction_type_input)[0:1].get()
+            transaction_type = JournalTransactionType.objects.filter(id=transaction_type_input)[0:1].get()
             asset_type = AssetType.objects.get(id=asset_type_id_input)
             account = Account.objects.get(id=virtual_account_id_input)
 

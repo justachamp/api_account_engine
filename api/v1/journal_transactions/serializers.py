@@ -1,14 +1,12 @@
 from rest_framework import serializers
-from engine.models import Posting, Journal, Journal_transaction_type, Account, AssetType, OperationAccount, \
+from engine.models import Posting, Journal, JournalTransactionType, Account, AssetType, OperationAccount, \
     PaymentRequest, DWHBalanceAccount
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.forms.models import model_to_dict
 from engine.services.transfer_services import TransferToOperationAccountService
-from engine.services.transaction_services import FinanceOperationByInvestmentTransaction
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-# from apiUserAdminMex.exceptions.cumplo_exception import *
+from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation
 from django.core.exceptions import ObjectDoesNotExist
 import json
 from collection_module.services.collection_services import CreateCollectingRecordService, PayerRecordService
@@ -115,9 +113,9 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
             raise serializers.ValidationError("la cuenta de destino debe ser una cuenta de operación")
 
     def create(self, validated_data):
-        #TODO: pasar a un servicio independiente encargado de registrar las transacciones
+        # TODO: pasar a un servicio independiente encargado de registrar las transacciones
         # Get data for proccess
-        journal_transaction = Journal_transaction_type.objects.get(id=validated_data['transaction_type'])
+        journal_transaction = JournalTransactionType.objects.get(id=validated_data['transaction_type'])
         from_account = Account.objects.get(external_account_id=validated_data['from_account']['external_account_id'],
                                            external_account_type_id=validated_data['from_account'][
                                                'external_account_type'])
@@ -246,7 +244,7 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
         pass
 
 
-class InvesmentCostSerializer(serializers.Serializer):
+class CostSerializer(serializers.Serializer):
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     type = serializers.IntegerField(required=True)
 
@@ -258,7 +256,7 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
     investment_id = serializers.IntegerField(required=True)
     total_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     investment_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
-    investment_cost = InvesmentCostSerializer(many=True)
+    investment_cost = CostSerializer(many=True)
 
     def validate(self, data):
         # Validar que los montos cuadren en total
@@ -281,20 +279,55 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
 
     def create(self, validated_data):
 
-        investor_account=Account.objects.get(external_account_id=validated_data['investor_account_id'], external_account_type_id=validated_data['investor_account_type'])
+        investor_account = Account.objects.get(external_account_id=validated_data['investor_account_id'],
+                                               external_account_type_id=validated_data['investor_account_type'])
 
-        print("validated_data['external_operation_id']")
-        print(validated_data['external_operation_id'])
-        algo = FinanceOperationByInvestmentTransaction.execute(
+        financing_response = FinanceOperationByInvestmentTransaction.execute(
             {
-                'account' : investor_account.id,
-                'investment_id' : validated_data['investment_id'],
-                'total_amount' : validated_data['total_amount'],
-                'investment_amount' : validated_data['investment_amount'],
-                'investment_costs' : validated_data['investment_cost'],
+                'account': investor_account.id,
+                'investment_id': validated_data['investment_id'],
+                'total_amount': validated_data['total_amount'],
+                'investment_amount': validated_data['investment_amount'],
+                'investment_costs': validated_data['investment_cost'],
                 'external_operation_id': validated_data['external_operation_id'],
-                #TODO: definir el asset_type según sistema con que interactura
+                # TODO: definir el asset_type según sistema con que interactura
                 'asset_type': 1
             }
         )
-        return algo
+        return financing_response
+
+
+class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Serializer):
+
+    def positive_number(value):
+        if value < Decimal(0):
+            raise ValidationError("Must be positive")
+
+    requester_account_id = serializers.IntegerField(required=True)
+    requester_account_type = serializers.IntegerField(required=True)
+    external_operation_id = serializers.IntegerField(required=True)
+    total_amount = serializers.DecimalField(allow_null=False, default=Decimal('0.00000'), max_digits=20,
+                                            decimal_places=5, validators=[positive_number])
+    transfer_amount = serializers.DecimalField(allow_null=False, default=Decimal('0.00000'), max_digits=20,
+                                               decimal_places=5, validators=[positive_number])
+    requester_cost = CostSerializer(many=True)
+
+    def create(self, validated_data):
+        requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
+                                                external_account_type_id=validated_data['requester_account_type'])
+
+        requester_payment_from_operation = RequesterPaymentFromOperation.execute(
+            {
+                "account": requester_account.id,
+                "total_amount": validated_data['total_amount'],
+                "transfer_amount": validated_data['transfer_amount'],
+                "external_operation_id": validated_data['external_operation_id'],
+                "asset_type": 1,
+                "requester_costs": validated_data['requester_cost']
+            }
+        )
+
+        return requester_payment_from_operation
+
+    def update(self, instance, validated_data):
+        pass

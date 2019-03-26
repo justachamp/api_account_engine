@@ -6,7 +6,7 @@ from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAcco
 #from .income_types.views import IncomeTypeViewSet
 from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
 from .journal_transactions.views import JournalTransaction, JournalOperationTransaction,\
-    JournalOperationInvestmentTransaction
+    JournalOperationInvestmentTransaction, JournalRequesterPaymentFromOperation
 from .engine_account_transactions.views import TransactionAccountDetail
 
 
@@ -50,6 +50,10 @@ urlpatterns = [
     path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
     path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
     path('journal_transactions/financing_operation/investment', JournalOperationInvestmentTransaction.as_view()),
+    #Solicitud de pago a Solicitante
+    path('journal_transactions/requester_payment_from_operation/', JournalRequesterPaymentFromOperation.as_view()),
+
+
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
 
     #S1
@@ -83,10 +87,7 @@ urlpatterns = [
 
 
     #modulo de Nóminas
-    path('transaction/account_transactionssss/<str:pk>/', BillingPayerView.as_view()),
-
-
-
+    path('transaction/account_transaction/<str:pk>/', BillingPayerView.as_view()),
 
 
 ]

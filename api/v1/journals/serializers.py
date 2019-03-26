@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from engine.models.journals import Journal, Journal_transaction_type
+from engine.models.journals import Journal, JournalTransactionType
 
 
 
@@ -13,5 +13,5 @@ class JournalSerializer(serializers.ModelSerializer):
 class JournalTransactionTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Journal_transaction_type
+        model = JournalTransactionType
         fields = "__all__"

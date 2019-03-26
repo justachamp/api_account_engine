@@ -80,7 +80,8 @@ WSGI_APPLICATION = 'accountengine.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-if 'RDS_DB_NAME' in os.environ:
+if 'RDS_DB_NAME_' in os.environ:
+    print("RDS_DB_NAME")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -108,6 +109,7 @@ if 'RDS_DB_NAME' in os.environ:
         }
     }
 elif 'TESTING_DB' in os.environ:
+    print("TESTING DATABASE")
     DATABASES = {
         'default': {
             'NAME': 'cumplo_accountengine',
@@ -131,7 +133,9 @@ elif 'TESTING_DB' in os.environ:
 
 
 else:
+    print("DEFAULT DATABASE")
     DATABASES = {
+
         'default': {
             'NAME': 'cumplo_accountengine',
             'ENGINE': 'django.db.backends.mysql',

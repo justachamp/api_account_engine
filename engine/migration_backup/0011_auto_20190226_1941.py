@@ -40,6 +40,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='journal',
             name='journal_transactions',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.PROTECT, to='engine.Journal_transaction_type'),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.PROTECT, to='engine.models.journals.JournalTransactionType'),
         ),
     ]

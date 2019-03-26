@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.journals import Journal, Journal_transaction_type
+from engine.models.journals import Journal, JournalTransactionType
 from collection_module.models import GuaranteeDocument, Payment
 from .serializers import GuaranteeDocumentSerializers, PaymentSerializers
 from rest_framework.views import APIView
