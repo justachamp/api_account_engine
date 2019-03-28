@@ -2,7 +2,7 @@ import logging
 from decimal import Decimal
 from django.conf import settings
 
-from service_objects.fields import MultipleFormField
+from service_objects.fields import MultipleFormField, ModelField
 from service_objects.services import Service
 from django import forms
 from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount
@@ -10,6 +10,7 @@ from django.forms.models import model_to_dict
 from django.db.models import Sum
 from engine.services.account_services import DwhAccountAmountService
 from sqs_services.services import SqsService
+from enum import Enum
 
 CUMPLO_COST_ACCOUNT = 1
 
@@ -112,9 +113,37 @@ class GetClientRealTransaction(Service):
         return {"from": posting_from, "to": posting_to}
 
 
-class InvestmentCostForm(forms.Form):
-    type = forms.IntegerField(required=True)
+Categories = (
+    ('REQUESTER', 'REQUESTOR'),
+    ('INVESTOR', 'INVESTOR'),
+    ('PAYER', 'PAYER')
+)
+
+
+class BillinPropertiesForm(forms.Form):
+    billable = forms.BooleanField(required=True)
+    billing_entity = forms.CharField(required=True)  # ChoiceField(required=True, choices=billing_entity_choices)
+
+
+class SubAccountForm(forms.Form):
+    account_type = forms.IntegerField(required=True)
+    account_name = forms.CharField(required=True)
+
+
+class DestinationAccountForm(forms.Form):
+    account_type = forms.IntegerField(required=True)
+    account_name = forms.CharField(required=True)
+    sub_account = SubAccountForm()
+
+
+class AccountEnginePropertiesForm(forms.Form):
+    destination_account = DestinationAccountForm()
+
+
+class CostForm(forms.Form):
     amount = forms.DecimalField(required=True)
+    billing_properties = BillinPropertiesForm
+    #account_engine_properties = AccountEnginePropertiesForm
 
 
 class FinanceOperationByInvestmentTransaction(Service):
@@ -122,7 +151,7 @@ class FinanceOperationByInvestmentTransaction(Service):
     investment_id = forms.IntegerField(required=True)
     total_amount = forms.DecimalField(required=True)
     investment_amount = forms.DecimalField(required=True)
-    investment_costs = MultipleFormField(InvestmentCostForm, required=False)
+    investment_costs = MultipleFormField(CostForm, required=False)
     external_operation_id = forms.IntegerField(required=True)
     asset_type = forms.IntegerField(required=True)
 
@@ -171,13 +200,15 @@ class FinanceOperationByInvestmentTransaction(Service):
             print("investment_cost")
             print(investment_cost)
 
-            if investment_cost.cleaned_data['type'] == 1:
+            # TODO: Llamar al modulo de facturación
 
-                posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
-                                                    amount=Decimal(investment_cost.cleaned_data['amount']))
-
-            else:
-                print("Error")
+            # if investment_cost.cleaned_data['type'] == 1:
+            #
+            #     posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
+            #                                         amount=Decimal(investment_cost.cleaned_data['amount']))
+            #
+            # else:
+            #     print("Error")
 
         DwhAccountAmountService.execute(
             {
@@ -204,7 +235,7 @@ class RequesterPaymentFromOperation(Service):
     transfer_amount = forms.DecimalField(required=True)
     external_operation_id = forms.IntegerField(required=True)
     asset_type = forms.IntegerField(required=True)
-    requester_costs = MultipleFormField(InvestmentCostForm, required=False)
+    requester_costs = MultipleFormField(CostForm, required=False)
 
     # Validaciones que implica la operacion de pagar al solicitane
 
@@ -225,8 +256,9 @@ class RequesterPaymentFromOperation(Service):
         operation_financing_total_amount = Posting.objects.filter(account=operation_data).aggregate(Sum('amount'))
 
         # 2- que la operacion tenga suficiente financiamiento para pagar al solicitante y todos los costos asociados
-        if operation_financing_total_amount['amount__sum'] < total_amount:
 
+        if operation_financing_total_amount['amount__sum'] is None or operation_financing_total_amount[
+            'amount__sum'] < total_amount:
             raise forms.ValidationError(
                 "La operacion No tiene Financiamiento suficiente para pagar el total de la transacción")
 
@@ -247,80 +279,88 @@ class RequesterPaymentFromOperation(Service):
 
     def process(self):
         # TODO: modificar este valor en duro
-        transaction_type = 5  # Pago a solicitante
-        # Get Data
-        account = self.cleaned_data['account']
-        total_amount = self.cleaned_data['total_amount']
-        transfer_amount = self.cleaned_data['transfer_amount']
-        external_operation_id = self.cleaned_data['external_operation_id']
-        requester_costs = self.cleaned_data['requester_costs']
-        asset_type = self.cleaned_data['asset_type']
 
-        # Get and Process Data
-        # TODO: definir transacción de Pago a solicitante
-        journal_transaction = JournalTransactionType.objects.get(id=transaction_type)
-        from_account = OperationAccount.objects.get(external_account_id=external_operation_id)
+        if self.is_valid():
+            transaction_type = 5  # Pago a solicitante
+            # Get Data
+            account = self.cleaned_data['account']
+            total_amount = self.cleaned_data['total_amount']
+            transfer_amount = self.cleaned_data['transfer_amount']
+            external_operation_id = self.cleaned_data['external_operation_id']
+            requester_costs = self.cleaned_data['requester_costs']
+            asset_type = self.cleaned_data['asset_type']
 
-        to_requester_account = Account.objects.get(id=external_operation_id)
+            # Get and Process Data
+            # TODO: definir transacción de Pago a solicitante
+            journal_transaction = JournalTransactionType.objects.get(id=transaction_type)
+            from_account = OperationAccount.objects.get(external_account_id=external_operation_id)
 
-        asset_type = AssetType.objects.get(id=asset_type)
+            to_requester_account = Account.objects.get(id=external_operation_id)
 
-        # Traigo la cuenta de cumplo asesorias
-        cumplo_cost_account = Account.objects.get(id=CUMPLO_COST_ACCOUNT)
+            asset_type = AssetType.objects.get(id=asset_type)
 
-        # Create Data
-        ################################################################################################################
-        ################################################################################################################
+            # Traigo la cuenta de cumplo asesorias
+            cumplo_cost_account = Account.objects.get(id=CUMPLO_COST_ACCOUNT)
 
-        # Creacion de asiento
-        journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
-                                         journal_transaction=journal_transaction)
+            # Create Data
+            ################################################################################################################
+            ################################################################################################################
 
-        # Descuento a la cuenta de operacion por el monto total
-        posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
-                                              amount=(Decimal(total_amount) * -1))
+            # Creacion de asiento
+            journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
+                                             journal_transaction=journal_transaction)
 
-        # Asignacion de inversionista a operacion
-        posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
-                                            amount=Decimal(transfer_amount))
+            # Descuento a la cuenta de operacion por el monto total
+            posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
+                                                  amount=(Decimal(total_amount) * -1))
 
-        # asignacion de inversionista a costos cumplo
-        total_amount_cost = 0
-        for requester_cost in requester_costs:
+            # Asignacion de inversionista a operacion
+            posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
+                                                amount=Decimal(transfer_amount))
+
+            # TODO: Llamar al modulo de facturación
             # asignacion de inversionista a costos cumplo
+            # total_amount_cost = 0
+            for requester_cost in requester_costs:
+                # asignacion de inversionista a costos cumplo
+                #
+                print(str(requester_cost))
+                billing_properties = requester_cost.cleaned_data['billing_properties']
+                print(str(billing_properties))
+                billing_entity = billing_properties.cleaned_data['billing_entity']
+            #
+            #         posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
+            #                                             amount=Decimal(requester_cost.cleaned_data['amount']))
+            #
+            #
+            #     else:
+            #         print("Error")
+            #
+            #     total_amount_cost = total_amount_cost + requester_cost.cleaned_data['amount']
+            #
+            # if total_amount_cost + transfer_amount != total_amount:
+            #     raise Exception("Montos totales no coinciden")
 
-            if requester_cost.cleaned_data['type'] == 1:
+            DwhAccountAmountService.execute(
+                {
+                    'account_id': from_account.id
+                }
+            )
+            DwhAccountAmountService.execute(
+                {
+                    'account_id': to_requester_account.id
+                }
+            )
 
-                posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
-                                                    amount=Decimal(requester_cost.cleaned_data['amount']))
+            # TODO: DEFINIR COLA PARA ENVIAR ENVIAR INFO DE PAGO A SOLICITANTE
 
+            # sqs = SqsService(json_data={"result": True,
+            #                             "message": "TODO OK",
+            #                             "investment_id": investment_id,
+            #                             "investor_type": 1
+            #                             })
+            # sqs.push('response-engine-pay-investment')
 
-            else:
-                print("Error")
-
-            total_amount_cost = total_amount_cost + requester_cost.cleaned_data['amount']
-
-        if total_amount_cost + transfer_amount != total_amount:
-            raise Exception("Montos totales no coinciden")
-
-        DwhAccountAmountService.execute(
-            {
-                'account_id': from_account.id
-            }
-        )
-        DwhAccountAmountService.execute(
-            {
-                'account_id': to_requester_account.id
-            }
-        )
-
-        # TODO: DEFINIR COLA PARA ENVIAR ENVIAR INFO DE PAGO A SOLICITANTE
-
-        # sqs = SqsService(json_data={"result": True,
-        #                             "message": "TODO OK",
-        #                             "investment_id": investment_id,
-        #                             "investor_type": 1
-        #                             })
-        # sqs.push('response-engine-pay-investment')
-
-        return model_to_dict(journal_transaction)
+            return model_to_dict(journal_transaction)
+        else:
+            return self.errors

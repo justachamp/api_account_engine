@@ -146,4 +146,4 @@ class JournalRequesterPaymentFromOperation(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

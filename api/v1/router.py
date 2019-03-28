@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
 
-from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount, PositiveBalanceAccount
+from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount, PositiveBalanceAccount, AccountTypeViewSet
 #from .income_types.views import IncomeTypeViewSet
 from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
 from .journal_transactions.views import JournalTransaction, JournalOperationTransaction,\
@@ -23,7 +23,7 @@ router = routers.DefaultRouter()
 # CAPA DE DATOS MOTOR DE CUENTAS
 router.register(r'accounts', AccountViewSet)
 router.register(r'operation_account', OperationAccountViewSet)
-#router.register(r'income_types', IncomeTypeViewSet)
+router.register(r'account_type', AccountTypeViewSet)
 router.register(r'asset_types', AssetTypeViewSet)
 router.register(r'batch_states', BatchStateViewSet)
 router.register(r'journals', JournalViewSet)
@@ -60,6 +60,8 @@ urlpatterns = [
     path('account/balance/external_account_id/<str:ext_account_id>/external_account_type/<str:ext_account_type>/', BalanceAccount.as_view()),
 
     path('account/positive_balance/', PositiveBalanceAccount.as_view()),
+
+    path('account/positive_balance/external_account_type/<int:entity_type>/', PositiveBalanceAccount.as_view()),
 
     #S2
     path('transaction/account_transaction/<str:external_account_id>/<int:external_account_type>/', TransactionAccountDetail.as_view()),

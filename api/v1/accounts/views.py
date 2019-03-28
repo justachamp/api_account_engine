@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
-from engine.models.accounts import Account, OperationAccount
-from .serializers import AccountSerializer, OperationAccountSerializer
+from engine.models.accounts import Account, OperationAccount, AccountType
+from .serializers import AccountSerializer, OperationAccountSerializer,AccountTypeSerializer
 from django.http import Http404
 from rest_framework.views import APIView
 from engine.services.account_services import BalanceAccountService, PositiveBalanceAccountService
@@ -11,6 +11,10 @@ from rest_framework import status
 class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
+
+class AccountTypeViewSet(ModelViewSet):
+    queryset = AccountType.objects.all()
+    serializer_class = AccountTypeSerializer
 
 
 class OperationAccountViewSet(ModelViewSet):
@@ -43,10 +47,12 @@ class BalanceAccount(APIView):
 
 class PositiveBalanceAccount(APIView):
 
-    def get(self, request):
+    def get(self, request, entity_type=None):
 
         try:
-            positive_balance_data = PositiveBalanceAccountService.execute({})
+            positive_balance_data = PositiveBalanceAccountService.execute({
+                "entity_type": entity_type
+            })
             print(positive_balance_data)
             return Response(positive_balance_data, status=status.HTTP_200_OK)
         except Exception as e:

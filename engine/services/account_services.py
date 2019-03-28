@@ -71,14 +71,22 @@ class BalanceAccountService(Service):
 
 
 class PositiveBalanceAccountService(Service):
+    entity_type = forms.IntegerField(required=False)
 
     def process(self):
         try:
+
+            entity_type = self.cleaned_data['entity_type']
+            if entity_type is not None:
             # Get Datas
-            positive_balance_accounts = DWHBalanceAccount.objects.values( 'account__name',).filter(balance_account_amount__gt = 0).annotate(account_id=F('account__external_account_id'), account_type=F('account__external_account_type'), balance_account=F('balance_account_amount')  )#.extra(select={'blablabla': 'account__external_account_id'})
+                positive_balance_accounts = DWHBalanceAccount.objects.values( 'account__name',).filter(balance_account_amount__gt = 0, account__external_account_type=self.cleaned_data['entity_type']).annotate(account_id=F('account__external_account_id'), account_type=F('account__external_account_type'), balance_account=F('balance_account_amount')  )#.extra(select={'blablabla': 'account__external_account_id'})
+            else:
+                positive_balance_accounts = DWHBalanceAccount.objects.values( 'account__name',).filter(balance_account_amount__gt = 0).annotate(account_id=F('account__external_account_id'), account_type=F('account__external_account_type'), balance_account=F('balance_account_amount')  )#.extra(select={'blablabla': 'account__external_account_id'})
+
+
             return positive_balance_accounts
         except Exception as e:
-            raise e;
+            raise e
 
 
 class DwhAccountAmountService(Service):

@@ -243,10 +243,55 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         pass
 
+class BillingPropertiesSerializers(serializers.Serializer):
+    billable = serializers.BooleanField(required=True)
+    billing_entity = serializers.CharField(required=True)
+    #TODO: TAX, validar con Barbara si es necesario este campo para presentación de info en datos de Facturación
+
+
+class SubAccountSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    account_type = serializers.IntegerField(required=True)
+    account_name = serializers.CharField(required=True)
+
+
+class DestinationAccountSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    account_type = serializers.IntegerField(required=True)
+    account_name = serializers.CharField(required=True)
+    sub_account = SubAccountSerializer()
+
+
+class AccountEnginePropertiesSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    destination_account = DestinationAccountSerializer()
+
 
 class CostSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
-    type = serializers.IntegerField(required=True)
+    billing_properties = BillingPropertiesSerializers(required=True)
+    account_engine_properties = AccountEnginePropertiesSerializer()
 
 
 class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
@@ -316,6 +361,8 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
         requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
                                                 external_account_type_id=validated_data['requester_account_type'])
 
+
+        print("Send To RequesterPaymentFromOperation Service")
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {
                 "account": requester_account.id,
