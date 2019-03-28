@@ -4,7 +4,7 @@ from decimal import Decimal
 from service_objects.fields import MultipleFormField
 from service_objects.services import Service
 from django import forms
-from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, OperationAccount
+from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount
 from django.forms.models import model_to_dict
 
 
@@ -31,7 +31,7 @@ class FinancingOperationTransaction(Service):
 
 
 # Get data for proccess
-journal_transaction = Journal_transaction_type.objects.get(id=validated_data['transaction_type'])
+journal_transaction = JournalTransactionType.objects.get(id=validated_data['transaction_type'])
 from_account = Account.objects.get(external_account_id=validated_data['from_account']['external_account_id'],
                                    external_account_type_id=validated_data['from_account'][
                                        'external_account_type'])

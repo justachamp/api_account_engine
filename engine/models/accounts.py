@@ -43,6 +43,7 @@ class Account(AbstractModel):
 
 class OperationAccount(Account):
     financing_amount = models.DecimalField(null=False, decimal_places=5, default=0, max_digits=20)
+    requester_account = models.ForeignKey(Account, related_name='requestor', null=False, on_delete=models.PROTECT)
 
 
 class DWHBalanceAccount(AbstractModel):

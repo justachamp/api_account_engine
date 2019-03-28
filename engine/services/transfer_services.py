@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from service_objects.services import Service
 from django import forms
-from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, OperationAccount
+from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount
 from django.forms.models import model_to_dict
 
 
@@ -21,7 +21,7 @@ class TransferToOperationAccountService(Service):
         asset_type_input = self.cleaned_data['asset_type']
 
         # Get Data for proccess
-        journal_transaction_data=Journal_transaction_type.objects.get(id=journal_transaction_input)
+        journal_transaction_data=JournalTransactionType.objects.get(id=journal_transaction_input)
         from_account_data= Account.objects.get(external_account_id=from_account_input)
         to_operation_account_data = OperationAccount.objects.get(external_account_id=to_account_input)
         asset_type_data = AssetType.objects.get(id=asset_type_input)

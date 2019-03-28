@@ -18,7 +18,7 @@
     }
   },
   {
-    "model": "engine.Journal_transaction_type",
+    "model": "engine.JournalTransactionType",
     "pk": 1,
     "fields": {
       "created": "2018-11-14T23:24:16.038Z",

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from engine.models.journals import Journal, Journal_transaction_type
+from engine.models.journals import Journal, JournalTransactionType
 from engine.models.postings import Posting,AssetType
 from engine.models.accounts import Account, AccountType
 from engine.services.account_services import RealToVirtualDepositService
@@ -26,7 +26,7 @@ class VirtualAccountDepositSerializer(serializers.Serializer):
         destiny_account = Account.objects.get(external_account_id=validated_data['external_account_id'],
                                               external_account_type_id=validated_data['external_account_type'])
         asset_type = AssetType.objects.get(id=validated_data['asset_type'])
-        journal_transaction_type = Journal_transaction_type.objects.get(id=validated_data['asset_type'])
+        journal_transaction_type = JournalTransactionType.objects.get(id=validated_data['asset_type'])
         print("Llamando al servicio RealToVirtualDepositService")
         posting = RealToVirtualDepositService.execute(
             {

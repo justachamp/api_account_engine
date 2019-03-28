@@ -1,6 +1,6 @@
 from service_objects.services import Service
 from django import forms
-from engine.models import Journal_transaction_type, Journal, Posting, AssetType, Account, DWHBalanceAccount
+from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, DWHBalanceAccount
 from django.forms.models import model_to_dict
 from django.db.models import Sum
 import logging
@@ -27,7 +27,7 @@ class RealToVirtualDepositService(Service):
             deposit_date_input = self.cleaned_data['deposit_date']
 
             # Get Datas
-            transaction_type = Journal_transaction_type.objects.filter(id=transaction_type_input)[0:1].get()
+            transaction_type = JournalTransactionType.objects.filter(id=transaction_type_input)[0:1].get()
             asset_type = AssetType.objects.get(id=asset_type_id_input)
             account = Account.objects.get(id=virtual_account_id_input)
 
@@ -71,14 +71,22 @@ class BalanceAccountService(Service):
 
 
 class PositiveBalanceAccountService(Service):
+    entity_type = forms.IntegerField(required=False)
 
     def process(self):
         try:
+
+            entity_type = self.cleaned_data['entity_type']
+            if entity_type is not None:
             # Get Datas
-            positive_balance_accounts = DWHBalanceAccount.objects.values( 'account__name',).filter(balance_account_amount__gt = 0).annotate(account_id=F('account__external_account_id'), account_type=F('account__external_account_type'), balance_account=F('balance_account_amount')  )#.extra(select={'blablabla': 'account__external_account_id'})
+                positive_balance_accounts = DWHBalanceAccount.objects.values( 'account__name',).filter(balance_account_amount__gt = 0, account__external_account_type=self.cleaned_data['entity_type']).annotate(account_id=F('account__external_account_id'), account_type=F('account__external_account_type'), balance_account=F('balance_account_amount')  )#.extra(select={'blablabla': 'account__external_account_id'})
+            else:
+                positive_balance_accounts = DWHBalanceAccount.objects.values( 'account__name',).filter(balance_account_amount__gt = 0).annotate(account_id=F('account__external_account_id'), account_type=F('account__external_account_type'), balance_account=F('balance_account_amount')  )#.extra(select={'blablabla': 'account__external_account_id'})
+
+
             return positive_balance_accounts
         except Exception as e:
-            raise e;
+            raise e
 
 
 class DwhAccountAmountService(Service):
