@@ -58,7 +58,7 @@ urlpatterns = [
 
 
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
-    path('operation_account/', OperationAccount.as_view()),
+
 
     #S1
     path('account/balance/external_account_id/<str:ext_account_id>/external_account_type/<str:ext_account_type>/', BalanceAccount.as_view()),
