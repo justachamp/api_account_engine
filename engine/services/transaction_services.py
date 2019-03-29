@@ -109,7 +109,6 @@ class GetClientRealTransaction(Service):
                                             amount=Decimal(amount_input))
 
         # Create collecting record
-
         return {"from": posting_from, "to": posting_to}
 
 
@@ -122,7 +121,7 @@ Categories = (
 
 class BillinPropertiesForm(forms.Form):
     billable = forms.BooleanField(required=True)
-    billing_entity = forms.CharField(required=True)  # ChoiceField(required=True, choices=billing_entity_choices)
+    billing_entity = forms.ChoiceField(required=True, choices=Categories)
 
 
 class SubAccountForm(forms.Form):
@@ -142,7 +141,7 @@ class AccountEnginePropertiesForm(forms.Form):
 
 class CostForm(forms.Form):
     amount = forms.DecimalField(required=True)
-    billing_properties = BillinPropertiesForm
+    billing_properties = BillinPropertiesForm()
     #account_engine_properties = AccountEnginePropertiesForm
 
 
@@ -266,8 +265,13 @@ class RequesterPaymentFromOperation(Service):
         # 3- que los costos mas el monto a transferir sean iguales a el monto total de la transferencia
         total_amount_cost = 0
         for requester_cost in requester_costs:
-            # asignacion de inversionista a costos cumplo
-            total_amount_cost = total_amount_cost + requester_cost.cleaned_data['amount']
+        #     # asignacion de inversionista a costos cumplo
+
+            requester_cost_amount = requester_cost.clean()
+            print("!!!!!!!!!!!requester_cost['amount']")
+            print(requester_cost_amount.get('amount'))
+
+            total_amount_cost = total_amount_cost + requester_cost_amount.get('amount')
 
         if total_amount_cost + transfer_amount != total_amount:
             raise forms.ValidationError("Los montos no coinciden")

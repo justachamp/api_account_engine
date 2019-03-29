@@ -245,7 +245,7 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
 
 class BillingPropertiesSerializers(serializers.Serializer):
     billable = serializers.BooleanField(required=True)
-    billing_entity = serializers.CharField(required=True)
+    billing_entity2 = serializers.CharField(required=True)
     #TODO: TAX, validar con Barbara si es necesario este campo para presentación de info en datos de Facturación
 
 
@@ -363,6 +363,8 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
 
 
         print("Send To RequesterPaymentFromOperation Service")
+        print("validated_data['requester_cost']")
+        print(validated_data['requester_cost'])
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {
                 "account": requester_account.id,
