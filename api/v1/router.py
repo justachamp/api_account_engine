@@ -3,7 +3,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
 
 
-from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount, PositiveBalanceAccount, AccountTypeViewSet
+from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount, PositiveBalanceAccount, AccountTypeViewSet, BankRegistry
 #from .income_types.views import IncomeTypeViewSet
 from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
 from .journal_transactions.views import JournalTransaction, JournalOperationTransaction,\
@@ -95,6 +95,9 @@ urlpatterns = [
     #modulo de Nóminas
     path('transaction/account_transaction/<str:pk>/', BillingPayerView.as_view()),
 
+
+    #Bank Registry
+    path('account/bank_registry/', BankRegistry.as_view())
 
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

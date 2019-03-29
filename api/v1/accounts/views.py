@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from engine.models.accounts import Account, OperationAccount, AccountType
-from .serializers import AccountSerializer, OperationAccountSerializer,AccountTypeSerializer
+from .serializers import AccountSerializer, OperationAccountSerializer,AccountTypeSerializer, BankRegistrySerializer
 from django.http import Http404
 from rest_framework.views import APIView
 from engine.services.account_services import BalanceAccountService, PositiveBalanceAccountService
@@ -85,6 +85,34 @@ class PositiveBalanceAccount(APIView):
             return Response(positive_balance_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class BankRegistry(APIView):
+    def post(self, request, format=None):
+        """
+        Create a new Bank Registry to account with this format
+        {
+         "external_account_type":2,
+         "external_account_id":1234,
+         "account_number": "2154",
+         "email": "ro@cumplo.com",
+         "default_account": false,
+         "bank": "codigo_banco",
+         "account_type": 2
+        }
+
+        :return: a new journal
+        """
+
+        serializer = BankRegistrySerializer(data=request.data)
+        if serializer.is_valid():
+            print("Estructura valida para JournalTransaction")
+
+            json_data = serializer.save()
+            return Response(json_data, status=status.HTTP_200_OK)
+
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 #

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from engine.models.accounts import Account, OperationAccount, AccountType
 from engine.services.account_services import BalanceAccountService
+from engine.services.bank_registry_services import BankRegistryService
 from django.forms.models import model_to_dict
 
 
@@ -71,3 +72,36 @@ class BalanceAccountSerializer(serializers.Serializer):
             }
         )
         return balance_account
+
+
+class BankRegistrySerializer(serializers.Serializer):
+    external_account_type = serializers.IntegerField(required=True)
+    external_account_id = serializers.IntegerField(required=True)
+    bank_account_number = serializers.IntegerField(required=True)
+    account_notification_email = serializers.EmailField(required=True)
+    bank_code = serializers.IntegerField(required=True)
+    account_bank_type = serializers.IntegerField(required=True)
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        account = Account.objects.get(external_account_id=validated_data['external_account_id'], external_account_type_id=validated_data['external_account_type'])
+
+        print("account")
+        print(account.id)
+        bank_registry = BankRegistryService.execute(
+            {
+                "account": account.id,
+                "bank_account_number": validated_data['bank_account_number'],
+                "account_notification_email": validated_data['account_notification_email'] ,
+                "bank_code": validated_data['bank_code'],
+                "account_bank_type":validated_data['account_bank_type']
+
+            }
+        )
+        return bank_registry
+
+
+
+
