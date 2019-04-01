@@ -41,7 +41,7 @@
     "fields": {
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
-      "account_type": "Operación"
+      "account_type": "Operacion"
       }
   },
   {
@@ -101,7 +101,7 @@
     "fields": {
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
-      "description": "Transferencia desde cuenta Virtual a cuenta de Operación"
+      "description": "Transferencia desde cuenta Virtual a cuenta de Operacion"
 
     }
   },
@@ -111,7 +111,7 @@
     "fields": {
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
-      "description": "Financiamiento de operación por Inversión"
+      "description": "Financiamiento de operacion por Inversion"
 
     }
   },
@@ -121,7 +121,7 @@
     "fields": {
       "created": "2018-11-14T23:24:16.038Z",
       "updated": "2018-11-14T23:24:16.038Z",
-      "description": "Instrucción de pago a Solicitante"
+      "description": "Instruccion de pago a Solicitante"
 
     }
   }

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from engine.models import Posting, Journal, JournalTransactionType, Account, AssetType, OperationAccount, \
-    PaymentRequest, DWHBalanceAccount
+    PaymentRequest, DWHBalanceAccount, BankAccount
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -8,7 +8,6 @@ from django.forms.models import model_to_dict
 from engine.services.transfer_services import TransferToOperationAccountService
 from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation
 from django.core.exceptions import ObjectDoesNotExist
-import json
 from collection_module.services.collection_services import CreateCollectingRecordService, PayerRecordService
 
 
@@ -16,8 +15,6 @@ class FromAccountSerializer(serializers.Serializer):
 
     def validate(self, data):
         try:
-            print("flag -1")
-            print(data)
             Account.objects.get(external_account_id=data['external_account_id'],
                                 external_account_type_id=data['external_account_type'])
             return data
@@ -44,8 +41,6 @@ class JournalTransactionsSerializer(serializers.Serializer):
     def validate(self, data):
         try:
 
-            print("Flag -1")
-            print(data['from_account'])
 
             origin_account = Account.objects.get(external_account_id=data['from_account']['external_account_id'],
                                                  external_account_type_id=data['from_account']['external_account_type'])
@@ -55,7 +50,6 @@ class JournalTransactionsSerializer(serializers.Serializer):
 
             account_posting_amount = Posting.objects.filter(account=origin_account).aggregate(Sum('amount'))
             # posting = Posting(account)
-            print(account_posting_amount)
             if account_posting_amount['amount__sum'] is not None and account_posting_amount['amount__sum'] >= Decimal(
                     data['amount']):
                 return data
@@ -138,13 +132,11 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
         DWHBalanceAccount.objects.update_or_create(account=from_account, defaults={
             'balance_account_amount': dwh_balance_account['amount__sum']})
 
-        print("flag 1!!!!")
         # TODO: Validar que este financiado desde Motor y que no se sobre financie
         if to_account.financing_amount is not None and account_posting_operation_amount[
             'amount__sum'] is not None and to_account.financing_amount < account_posting_operation_amount[
             'amount__sum']:
 
-            print("Se Reconoce operacion Financiada!!!")
             list_post = []
             for posting_operation in posting_operation_amount:
                 list_post.append(model_to_dict(posting_operation))
@@ -231,13 +223,10 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
                         "payment_request": model_to_dict(payment_request),
                         "posting_payment": {"from": model_to_dict(posting_from), "to": model_to_dict(posting_to)}}
 
-
-
             except Exception as e:
-                print(str(e))
+
                 raise e
 
-        print("flag 3!!!!")
         return model_to_dict(journal);
 
     def update(self, instance, validated_data):
@@ -356,6 +345,31 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
         if value < Decimal(0):
             raise ValidationError("Must be positive")
 
+    def validate(self, data):
+        # Validar que los montos cuadren en total
+        total_cost = 0
+        for requester_cost in data['requester_cost']:
+            total_cost = total_cost + requester_cost['amount']
+
+        if data['transfer_amount'] + total_cost != data['total_amount']:
+            raise serializers.ValidationError("los montos a transferir y costos no coinciden con el total")
+
+        try:
+            OperationAccount.objects.filter(external_account_type_id=data['external_operation_id'])
+
+            requester_account = Account.objects.get(external_account_id=data['requester_account_id'],
+                                                    external_account_type_id=data['requester_account_type'])
+
+            bank_account = BankAccount.objects.filter(account=requester_account)[0:1].get()
+
+        except BankAccount.DoesNotExist as e:
+            raise serializers.ValidationError("No hay cuenta Bancaria asociada al solicitante")
+
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+        return data
+
     requester_account_id = serializers.IntegerField(required=True)
     requester_account_type = serializers.IntegerField(required=True)
     external_operation_id = serializers.IntegerField(required=True)
@@ -369,10 +383,6 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
         requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
                                                 external_account_type_id=validated_data['requester_account_type'])
 
-
-        print("Send To RequesterPaymentFromOperation Service")
-        print("validated_data['requester_cost']")
-        print(validated_data['requester_cost'])
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {
                 "account": requester_account.id,

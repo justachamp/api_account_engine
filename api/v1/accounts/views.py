@@ -88,6 +88,18 @@ class PositiveBalanceAccount(APIView):
 
 
 class BankRegistry(APIView):
+
+    def get(self, request, entity_type=None):
+
+        try:
+            positive_balance_data = PositiveBalanceAccountService.execute({
+                "entity_type": entity_type
+            })
+
+            return Response(positive_balance_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
     def post(self, request, format=None):
         """
         Create a new Bank Registry to account with this format

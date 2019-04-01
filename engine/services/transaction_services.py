@@ -5,12 +5,11 @@ from django.conf import settings
 from service_objects.fields import MultipleFormField, ModelField
 from service_objects.services import Service
 from django import forms
-from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount
+from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount, BankAccount
 from django.forms.models import model_to_dict
 from django.db.models import Sum
 from engine.services.account_services import DwhAccountAmountService
 from sqs_services.services import SqsService
-from enum import Enum
 
 CUMPLO_COST_ACCOUNT = 1
 
@@ -30,12 +29,13 @@ class GetClientTransaction(CumploService):
         # Get Data for proccess
         account = Account.objects.get(external_account_id=external_account_id_input,
                                       external_account_type_id=external_account_type_input)
-        account_posting = Posting.objects.filter(account=account)
+
+        account_posting = Posting.objects.select_related('journal').values('journal__gloss', 'amount', ).filter(account=account)
 
         # Create collecting record
         list_posting = []
         for posting in account_posting:
-            list_posting.append(model_to_dict(posting))
+            list_posting.append(posting)
 
         return list_posting
 
@@ -225,7 +225,6 @@ class FinanceOperationByInvestmentTransaction(Service):
         else:
             print("No se envia a SQS")
 
-
         return model_to_dict(journal)
 
 
@@ -296,6 +295,9 @@ class RequesterPaymentFromOperation(Service):
              raise forms.ValidationError(
                   "Los costos asociados al pago son mayores que el monto a transferir al solicitante")
 
+        #5- Validar cuentas bancarias
+
+
         return cleaned_data
 
     def process(self):
@@ -315,6 +317,8 @@ class RequesterPaymentFromOperation(Service):
         journal_transaction = JournalTransactionType.objects.get(id=transaction_type)
         from_account = OperationAccount.objects.get(external_account_id=external_operation_id)
 
+
+
         to_requester_account = Account.objects.get(id=external_operation_id)
 
         asset_type = AssetType.objects.get(id=asset_type)
@@ -326,40 +330,30 @@ class RequesterPaymentFromOperation(Service):
         ################################################################################################################
         ################################################################################################################
 
-        # Creacion de asiento
-        journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
-                                         journal_transaction=journal_transaction)
 
-        # Descuento a la cuenta de operacion por el monto total
-        posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
-                                              amount=(Decimal(total_amount) * -1))
-
-        # Asignacion de inversionista a operacion
-        posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
-                                            amount=Decimal(transfer_amount))
 
         # TODO: Llamar al modulo de facturación
         # asignacion de inversionista a costos cumplo
         total_amount_cost = 0
         for requester_cost in requester_costs:
-            # asignacion de inversionista a costos cumplo
-            #
-            # print(str(requester_cost))s
-            # billing_properties = requester_cost.cleaned_data['billing_properties']
-            # print(str(billing_properties))
-            # billing_entity = billing_properties.cleaned_data['billing_entity']
-        #
-        #         posting_to = Posting.objects.create(account=cumplo_cost_account, asset_type=asset_type, journal=journal,
-        #                                             amount=Decimal(requester_cost.cleaned_data['amount']))
-        #
-        #
-        #     else:
-        #         print("Error")
-        #
+
             total_amount_cost = total_amount_cost + requester_cost.cleaned_data['amount']
-        #
+
         if total_amount_cost + transfer_amount != total_amount:
-             raise Exception("Montos totales no coinciden")
+
+            raise Exception("Montos totales no coinciden")
+
+        # Creacion de asiento
+        journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
+                                          journal_transaction=journal_transaction)
+
+        # Descuento a la cuenta de operacion por el monto total
+        posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
+                                               amount=(Decimal(total_amount) * -1))
+
+        # Asignacion de inversionista a operacion
+        posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
+                                             amount=Decimal(transfer_amount))
 
         DwhAccountAmountService.execute(
             {
@@ -375,15 +369,20 @@ class RequesterPaymentFromOperation(Service):
         # TODO: DEFINIR COLA PARA ENVIAR ENVIAR INFO DE PAGO A SOLICITANTE
 
 
-
         if settings.DEBUG and settings.DEBUG != True:
             print("Enviando a SQS")
-            sqs = SqsService(json_data={"result": True,
-                                        "message": "TODO OK",
-                                        "investment_id": investment_id,
-                                        "investor_type": 1
+
+            sqs = SqsService(json_data={
+                                "origin_account":from_account_bank.bank_account_number,
+                                "beneficiary_name": to_requestor_account_bank.account.name,
+                                "document_number": to_requestor_account_bank.account,
+                                "email": to_requestor_account_bank.account_notification_email,
+                                "mesagge": journal_transaction.description,
+                                "destination_account": to_requestor_account_bank.bank_account_number,
+                                "transfer_amount": transfer_amount
                                         })
-            sqs.push('response-engine-pay-investment')
+            sqs.push('sqs_account_engine_payment_requestor')
+
         else:
             print("No se envia a SQS")
 
