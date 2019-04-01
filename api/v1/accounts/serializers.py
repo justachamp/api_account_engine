@@ -82,6 +82,17 @@ class BankRegistrySerializer(serializers.Serializer):
     bank_code = serializers.IntegerField(required=True)
     account_bank_type = serializers.IntegerField(required=True)
 
+    def validate(self, data):
+        try:
+            print("flag -1")
+            print(data)
+            Account.objects.get(external_account_id=data['external_account_id'],
+                                external_account_type_id=data['external_account_type'])
+            return data
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+
     def update(self, instance, validated_data):
         pass
 
