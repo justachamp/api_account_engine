@@ -34,6 +34,14 @@ class BankRegistryService(Service):
         bank_account.account_bank_type = account_bank_type
         bank_account.save()
 
+
+
+
+
+
+
+
+
         return model_to_dict(bank_account)
 
 

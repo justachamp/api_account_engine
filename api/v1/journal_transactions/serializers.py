@@ -243,9 +243,16 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         pass
 
+
 class BillingPropertiesSerializers(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
     billable = serializers.BooleanField(required=True)
-    billing_entity2 = serializers.CharField(required=True)
+    billing_entity = serializers.CharField(required=True)
     #TODO: TAX, validar con Barbara si es necesario este campo para presentación de info en datos de Facturación
 
 
@@ -290,8 +297,9 @@ class CostSerializer(serializers.Serializer):
         pass
 
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
-    billing_properties = BillingPropertiesSerializers(required=True)
-    account_engine_properties = AccountEnginePropertiesSerializer()
+    billing_properties =  BillingPropertiesSerializers(required=True)
+    #billing_properties = BillingPropertiesSerializers(required=True)
+    #account_engine_properties = AccountEnginePropertiesSerializer()
 
 
 class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
