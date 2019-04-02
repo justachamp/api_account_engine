@@ -214,16 +214,16 @@ class FinanceOperationByInvestmentTransaction(Service):
                 'account_id': from_account.id
             }
         )
-        if settings.DEBUG and settings.DEBUG != True:
-            print("Enviando a SQS")
-            sqs = SqsService(json_data={"result": True,
-                                        "message": "TODO OK",
-                                        "investment_id": investment_id,
-                                        "investor_type": 1
-                                        })
-            sqs.push('response-engine-pay-investment')
-        else:
-            print("No se envia a SQS")
+        #if settings.DEBUG and settings.DEBUG != True:
+        print("Enviando a SQS")
+        sqs = SqsService(json_data={"result": True,
+                                    "message": "TODO OK",
+                                    "investment_id": investment_id,
+                                    "investor_type": 1
+                                    })
+        sqs.push('response-engine-pay-investment')
+        # else:
+        #     print("No se envia a SQS")
 
         return model_to_dict(journal)
 
@@ -369,21 +369,21 @@ class RequesterPaymentFromOperation(Service):
         # TODO: DEFINIR COLA PARA ENVIAR ENVIAR INFO DE PAGO A SOLICITANTE
 
 
-        if settings.DEBUG and settings.DEBUG != True:
-            print("Enviando a SQS")
-
-            sqs = SqsService(json_data={
-                                "origin_account":from_account_bank.bank_account_number,
-                                "beneficiary_name": to_requestor_account_bank.account.name,
-                                "document_number": to_requestor_account_bank.account,
-                                "email": to_requestor_account_bank.account_notification_email,
-                                "mesagge": journal_transaction.description,
-                                "destination_account": to_requestor_account_bank.bank_account_number,
-                                "transfer_amount": transfer_amount
-                                        })
-            sqs.push('sqs_account_engine_payment_requestor')
-
-        else:
-            print("No se envia a SQS")
+        # if settings.DEBUG and settings.DEBUG != True:
+        #     print("Enviando a SQS")
+        #
+        #     sqs = SqsService(json_data={
+        #                         "origin_account":from_account_bank.bank_account_number,
+        #                         "beneficiary_name": to_requestor_account_bank.account.name,
+        #                         "document_number": to_requestor_account_bank.account,
+        #                         "email": to_requestor_account_bank.account_notification_email,
+        #                         "mesagge": journal_transaction.description,
+        #                         "destination_account": to_requestor_account_bank.bank_account_number,
+        #                         "transfer_amount": transfer_amount
+        #                                 })
+        #     sqs.push('sqs_account_engine_payment_requestor')
+        #
+        # else:
+        #     print("No se envia a SQS")
 
         return model_to_dict(journal_transaction)

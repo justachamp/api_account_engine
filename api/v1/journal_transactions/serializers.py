@@ -399,16 +399,16 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
     def update(self, instance, validated_data):
         pass
 
-class InstalmentPaymentFineSerializer(serializers.Serializer):
+#class InstalmentPaymentFineSerializer(serializers.Serializer):
 
 
 
 
-class JournalInstalmentPaymentTransactionSerializer(serializers.Serializer):
-        payer_account_id=serializers.IntegerField(required=True)
-        payer_account_type=serializers.IntegerField(required=True)
-        external_operation_id=serializers.IntegerField(required=True)
-        instalment_id=serializers.IntegerField(required=True)
-        total_amount=serializers.DecimalField(required=True)
-        instalment_amount=serializers.DecimalField(required=True)
-        instalment_fines=InstalmentPaymentFineSerializer()
+# class JournalInstalmentPaymentTransactionSerializer(serializers.Serializer):
+#         payer_account_id=serializers.IntegerField(required=True)
+#         payer_account_type=serializers.IntegerField(required=True)
+#         external_operation_id=serializers.IntegerField(required=True)
+#         instalment_id=serializers.IntegerField(required=True)
+#         total_amount=serializers.DecimalField(required=True)
+#         instalment_amount=serializers.DecimalField(required=True)
+#         instalment_fines=InstalmentPaymentFineSerializer()
