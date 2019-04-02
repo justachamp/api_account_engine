@@ -74,6 +74,18 @@
       "updated": "2018-11-14T23:24:16.038Z"
       }
   },
+   {
+      "model": "engine.Account",
+      "pk": 1,
+      "fields": {
+      "name": "Cumplo Operaciones",
+      "real_account": null,
+      "external_account_id": 2,
+      "external_account_type": 4,
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z"
+      }
+  },
 
   {
     "model": "engine.JournalTransactionType",

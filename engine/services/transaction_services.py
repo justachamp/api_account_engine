@@ -121,7 +121,7 @@ Categories = (
 
 class BillinPropertiesForm():
     billable = forms.BooleanField(required=True)
-    billing_entity = forms.ChoiceField(required=True, choices=Categories)
+    billing_entity = forms.CharField(required=True)
 
 
 class SubAccountForm(forms.Form):
@@ -132,7 +132,7 @@ class SubAccountForm(forms.Form):
 class DestinationAccountForm(forms.Form):
     account_type = forms.IntegerField(required=True)
     account_name = forms.CharField(required=True)
-    sub_account = SubAccountForm()
+    sub_account = SubAccountForm
 
 
 class AccountEnginePropertiesForm(forms.Form):
@@ -140,9 +140,10 @@ class AccountEnginePropertiesForm(forms.Form):
 
 
 class CostForm(forms.Form):
+
+    billing_properties = (BillinPropertiesForm)
+    account_engine_properties =  forms.Form(AccountEnginePropertiesForm)
     amount = forms.DecimalField(required=True)
-    billing_properties = BillinPropertiesForm()
-    account_engine_properties = AccountEnginePropertiesForm
 
 
 class FinanceOperationByInvestmentTransaction(Service):
@@ -234,7 +235,7 @@ class RequesterPaymentFromOperation(Service):
     transfer_amount = forms.DecimalField(required=True)
     external_operation_id = forms.IntegerField(required=True)
     asset_type = forms.IntegerField(required=True)
-    requester_costs = MultipleFormField(CostForm, required=True)
+    requester_costs = MultipleFormField(CostForm, required=False)
 
     # Validaciones que implica la operacion de pagar al solicitane
 
@@ -252,7 +253,7 @@ class RequesterPaymentFromOperation(Service):
         transfer_amount = cleaned_data.get("transfer_amount")
         external_operation_id = cleaned_data.get("external_operation_id")
         operation_data = OperationAccount.objects.get(external_account_id=external_operation_id)
-        requester_costs = cleaned_data.get("requester_costs")
+        #requester_costs = cleaned_data.get("requester_costs")
 
         operation_financing_total_amount = Posting.objects.filter(account=operation_data).aggregate(Sum('amount'))
 
@@ -265,13 +266,14 @@ class RequesterPaymentFromOperation(Service):
 
         # 3- que los costos mas el monto a transferir sean iguales a el monto total de la transferencia
         total_amount_cost = 0
-        for requester_cost in requester_costs:
+        #if requester_costs:
+        for requester_cost in cleaned_data.get("requester_costs"):
           #     # asignacion de inversionista a costos cumplo
               print("!!!!!!!!!!!requester_cost!!!!!!!!!!!!!!!!!!!!")
               print(str(requester_cost))
 
               requester_cost_amount = requester_cost.clean()
-              print("!!!!!!!!!!!rrequester_cost_amount!!!!!!!!!!!!!!!!!!!!")
+              print("!!!!!!!!!!!requester_cost_amount!!!!!!!!!!!!!!!!!!!!")
               print(str(requester_cost_amount))
 
 
@@ -312,10 +314,15 @@ class RequesterPaymentFromOperation(Service):
         requester_costs = self.cleaned_data['requester_costs']
         asset_type = self.cleaned_data['asset_type']
 
+
+        print("requester_costs")
+        print(requester_costs)
+
         # Get and Process Data
         # TODO: definir transacción de Pago a solicitante
         journal_transaction = JournalTransactionType.objects.get(id=transaction_type)
         from_account = OperationAccount.objects.get(external_account_id=external_operation_id)
+        cumplo_operation_bank_account = Account.objects.get(external_account_type_id=4, external_account_id=2)
 
 
 
@@ -355,6 +362,25 @@ class RequesterPaymentFromOperation(Service):
         posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
                                              amount=Decimal(transfer_amount))
 
+        to_requestor_account_bank = BankAccount.objects.filter(
+            account=to_requester_account).order_by('-updated')[0:1]
+
+        from_account_bank = BankAccount.objects.filter(
+            account=cumplo_operation_bank_account).order_by('-updated')[0:1]
+
+
+        if to_requestor_account_bank.exists():
+            to_requestor_account_bank = to_requestor_account_bank.get()
+        else:
+            raise Exception("No hay cuenta bancaria registrada para el solicitante. Operación Cancelada!!")
+
+
+        if from_account_bank.exists():
+            from_account_bank = from_account_bank.get()
+        else:
+            raise Exception("No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
+
+
         DwhAccountAmountService.execute(
             {
                 'account_id': from_account.id
@@ -372,16 +398,18 @@ class RequesterPaymentFromOperation(Service):
         # if settings.DEBUG and settings.DEBUG != True:
         #     print("Enviando a SQS")
         #
-        #     sqs = SqsService(json_data={
-        #                         "origin_account":from_account_bank.bank_account_number,
-        #                         "beneficiary_name": to_requestor_account_bank.account.name,
-        #                         "document_number": to_requestor_account_bank.account,
-        #                         "email": to_requestor_account_bank.account_notification_email,
-        #                         "mesagge": journal_transaction.description,
-        #                         "destination_account": to_requestor_account_bank.bank_account_number,
-        #                         "transfer_amount": transfer_amount
-        #                                 })
-        #     sqs.push('sqs_account_engine_payment_requestor')
+
+
+        # sqs = SqsService(json_data={
+        #                      "origin_account":from_account_bank.bank_account_number,
+        #                      "beneficiary_name": to_requestor_account_bank.account.name,
+        #                      "document_number": "15828916-4",
+        #                      "email": to_requestor_account_bank.account_notification_email,
+        #                      "mesagge": journal_transaction.description,
+        #                      "destination_account": to_requestor_account_bank.bank_account_number,
+        #                      "transfer_amount": str(transfer_amount)
+        #                              })
+        # sqs.push('sqs_account_engine_payment_requestor')
         #
         # else:
         #     print("No se envia a SQS")

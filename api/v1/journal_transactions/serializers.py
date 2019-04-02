@@ -235,10 +235,10 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
 
 class BillingPropertiesSerializers(serializers.Serializer):
     def update(self, instance, validated_data):
-        pass
+        return validated_data
 
     def create(self, validated_data):
-        pass
+        return validated_data
 
     billable = serializers.BooleanField(required=True)
     billing_entity = serializers.CharField(required=True)
@@ -280,10 +280,10 @@ class AccountEnginePropertiesSerializer(serializers.Serializer):
 
 class CostSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
-        pass
+        return validated_data
 
     def create(self, validated_data):
-        pass
+        return validated_data
 
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     billing_properties =  BillingPropertiesSerializers(required=True)
@@ -341,15 +341,18 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
 
 class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Serializer):
 
+
     def positive_number(value):
         if value < Decimal(0):
             raise ValidationError("Must be positive")
 
     def validate(self, data):
+        print("!!!!!DATA!!!!!!")
+        print(str(data))
         # Validar que los montos cuadren en total
         total_cost = 0
-        for requester_cost in data['requester_cost']:
-            total_cost = total_cost + requester_cost['amount']
+        #for requester_cost in data['requester_cost']:
+        #    total_cost = total_cost + requester_cost['amount']
 
         if data['transfer_amount'] + total_cost != data['total_amount']:
             raise serializers.ValidationError("los montos a transferir y costos no coinciden con el total")
@@ -379,9 +382,15 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
                                                decimal_places=5, validators=[positive_number])
     requester_cost = CostSerializer(many=True)
 
+
+
     def create(self, validated_data):
         requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
                                                 external_account_type_id=validated_data['requester_account_type'])
+
+
+        print("validated_data['requester_cost']")
+        print(str(validated_data['requester_cost']))
 
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {
