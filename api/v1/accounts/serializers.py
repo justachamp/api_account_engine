@@ -27,7 +27,7 @@ class OperationAccountSerializer(serializers.Serializer):
         try:
 
             Account.objects.get(external_account_id=data['requester_account_id'],
-                                external_account_type_id=1)
+                                external_account_type_id=2)
 
             operation = OperationAccount.objects.filter(external_account_id=data['external_account_id'])
             if operation.exists():
