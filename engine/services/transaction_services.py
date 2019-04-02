@@ -319,7 +319,7 @@ class RequesterPaymentFromOperation(Service):
 
 
 
-        to_requester_account = Account.objects.get(id=external_operation_id)
+        to_requester_account = Account.objects.get(id=account)
 
         asset_type = AssetType.objects.get(id=asset_type)
 

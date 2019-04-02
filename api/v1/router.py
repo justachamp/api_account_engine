@@ -56,7 +56,7 @@ urlpatterns = [
     #Solicitud de pago a Solicitante
     path('journal_transactions/requester_payment_from_operation/', JournalRequesterPaymentFromOperation.as_view()),
 
-    path('journal_transactions/requester_payment_from_operation/', JournalInstalmentPaymentTransaction.as_view()),
+    #path('journal_transactions/requester_payment_from_operation/', JournalInstalmentPaymentTransaction.as_view()),
 
 
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
