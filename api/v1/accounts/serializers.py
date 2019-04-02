@@ -45,7 +45,7 @@ class OperationAccountSerializer(serializers.Serializer):
         print(str(validated_data))
 
         requester = Account.objects.get(external_account_id=validated_data['requester_account_id'],
-                            external_account_type_id=1)
+                            external_account_type_id=2)
 
         name = "Operacion "+str(validated_data['external_account_id'])
         create_operation = OperationAccount.objects.create(external_account_id=validated_data['external_account_id'],
