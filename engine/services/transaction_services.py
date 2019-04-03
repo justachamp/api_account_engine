@@ -141,8 +141,8 @@ class AccountEnginePropertiesForm(forms.Form):
 
 class CostForm(forms.Form):
 
-    billing_properties = (BillinPropertiesForm)
-    account_engine_properties =  forms.Form(AccountEnginePropertiesForm)
+    billing_properties = forms.Field(BillinPropertiesForm)
+    account_engine_properties = forms.Form(AccountEnginePropertiesForm)
     amount = forms.DecimalField(required=True)
 
 

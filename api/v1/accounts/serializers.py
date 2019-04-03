@@ -10,6 +10,7 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = "__all__"
 
+
 class AccountTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountType
@@ -18,10 +19,9 @@ class AccountTypeSerializer(serializers.ModelSerializer):
 
 class OperationAccountSerializer(serializers.Serializer):
 
-    operation_id  = serializers.CharField(required=True, source='external_account_id', max_length=150)
+    operation_id = serializers.CharField(required=True, source='external_account_id', max_length=150)
     financing_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     requester_id = serializers.IntegerField(required=True, source='requester_account_id')
-
 
     def validate(self, data):
         try:
