@@ -13,3 +13,5 @@ class BankAccount(AbstractModel):
     account_notification_email = models.EmailField(null=False)
     bank_code = models.IntegerField(null=False)
     account_bank_type = models.IntegerField(null=False)
+    account_holder_name = models.CharField(null=False, max_length=200)
+    account_holder_document_number = models.CharField(null=False, max_length=12)

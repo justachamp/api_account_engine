@@ -14,6 +14,8 @@ class BankRegistryService(Service):
     account_notification_email = forms.EmailField(required=True)
     bank_code = forms.IntegerField(required=True)
     account_bank_type = forms.IntegerField(required=True)
+    account_holder_name = forms.IntegerField(required=True)
+    account_holder_document_number = forms.IntegerField(required=True)
 
     def process(self):
 
@@ -23,6 +25,8 @@ class BankRegistryService(Service):
         account_notification_email = self.cleaned_data['account_notification_email']
         bank_code = self.cleaned_data['bank_code']
         account_bank_type = self.cleaned_data['account_bank_type']
+        account_holder_name = self.cleaned_data['account_holder_name']
+        account_holder_document_number = self.cleaned_data['account_holder_document_number']
 
         account = Account.objects.get(id=account_id)
 

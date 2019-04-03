@@ -104,16 +104,17 @@ class BankRegistry(APIView):
         """
         Create a new Bank Registry to account with this format
         {
-         "external_account_type":2,
-         "external_account_id":1234,
-         "account_number": "2154",
-         "email": "ro@cumplo.com",
-         "default_account": false,
-         "bank": "codigo_banco",
-         "account_type": 2
+           "account_notification_email": "cumplo@cumplo.com",
+            "external_account_id": 2,
+            "external_account_type": 4,
+            "bank_code": 1,
+            "account_bank_type": 1,
+            "bank_account_number": "65868962",
+            "account_holder_name" : "Juan papa",
+            "account_holder_document_number": "15828916-4"
         }
 
-        :return: a new journal
+        :return: a new BankAccount
         """
 
         serializer = BankRegistrySerializer(data=request.data)
