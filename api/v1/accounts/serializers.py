@@ -81,6 +81,8 @@ class BankRegistrySerializer(serializers.Serializer):
     account_notification_email = serializers.EmailField(required=True)
     bank_code = serializers.IntegerField(required=True)
     account_bank_type = serializers.IntegerField(required=True)
+    account_holder_name = serializers.CharField(required=True, max_length=200)
+    account_holder_document_number = serializers.CharField(required=True, max_length=12)
 
     def validate(self, data):
         try:
@@ -105,9 +107,11 @@ class BankRegistrySerializer(serializers.Serializer):
             {
                 "account": account.id,
                 "bank_account_number": validated_data['bank_account_number'],
-                "account_notification_email": validated_data['account_notification_email'] ,
+                "account_notification_email": validated_data['account_notification_email'],
                 "bank_code": validated_data['bank_code'],
-                "account_bank_type":validated_data['account_bank_type']
+                "account_bank_type":validated_data['account_bank_type'],
+                "account_holder_name" : validated_data['account_holder_name'],
+                "account_holder_document_number" : validated_data['account_holder_document_number']
 
             }
         )
