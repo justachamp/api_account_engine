@@ -263,9 +263,10 @@ class DestinationAccountSerializer(serializers.Serializer):
     def create(self, validated_data):
         pass
 
-    account_type = serializers.IntegerField(required=True)
-    account_name = serializers.CharField(required=True)
-    sub_account = SubAccountSerializer()
+    id = serializers.IntegerField(required=True)
+    #account_type = serializers.IntegerField(required=True)
+    #account_name = serializers.CharField(required=True)
+    #sub_account = SubAccountSerializer()
 
 
 class AccountEnginePropertiesSerializer(serializers.Serializer):
@@ -288,7 +289,7 @@ class CostSerializer(serializers.Serializer):
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     billing_properties =  BillingPropertiesSerializers(required=True)
     #billing_properties = BillingPropertiesSerializers(required=True)
-    #account_engine_properties = AccountEnginePropertiesSerializer()
+    account_engine_properties = AccountEnginePropertiesSerializer(required=True)
 
 
 class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
@@ -347,16 +348,19 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
             raise ValidationError("Must be positive")
 
     def validate(self, data):
-        print("!!!!!DATA!!!!!!")
-        print(str(data))
+
         # Validar que los montos cuadren en total
+        """
+
+
+
         total_cost = 0
-        #for requester_cost in data['requester_cost']:
-        #    total_cost = total_cost + requester_cost['amount']
+        for requester_cost in data['requester_cost']:
+            total_cost = total_cost + requester_cost['amount']
 
         if data['transfer_amount'] + total_cost != data['total_amount']:
             raise serializers.ValidationError("los montos a transferir y costos no coinciden con el total")
-
+        """
         try:
             OperationAccount.objects.filter(external_account_type_id=data['external_operation_id'])
 
@@ -381,7 +385,6 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
     transfer_amount = serializers.DecimalField(allow_null=False, default=Decimal('0.00000'), max_digits=20,
                                                decimal_places=5, validators=[positive_number])
     requester_cost = CostSerializer(many=True)
-
 
 
     def create(self, validated_data):

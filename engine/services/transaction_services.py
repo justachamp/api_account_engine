@@ -119,31 +119,38 @@ Categories = (
 )
 
 
-class BillinPropertiesForm():
+class BillinPropertiesForm(forms.Field):
     billable = forms.BooleanField(required=True)
     billing_entity = forms.CharField(required=True)
 
 
-class SubAccountForm(forms.Form):
+class SubAccountForm(forms.Field):
     account_type = forms.IntegerField(required=True)
     account_name = forms.CharField(required=True)
 
 
-class DestinationAccountForm(forms.Form):
+class DestinationAccountForm(forms.Field):
     account_type = forms.IntegerField(required=True)
     account_name = forms.CharField(required=True)
-    sub_account = SubAccountForm
 
 
-class AccountEnginePropertiesForm(forms.Form):
+class AccountEnginePropertiesForm(forms.Field):
     destination_account = DestinationAccountForm()
+
+    def clean(self, value):
+
+        return value
 
 
 class CostForm(forms.Form):
 
-    billing_properties = forms.Field(BillinPropertiesForm)
-    account_engine_properties = forms.Form(AccountEnginePropertiesForm)
+    billing_properties = BillinPropertiesForm(required=True)
+    account_engine_properties = AccountEnginePropertiesForm(required=True)
     amount = forms.DecimalField(required=True)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data
 
 
 class FinanceOperationByInvestmentTransaction(Service):
@@ -246,7 +253,7 @@ class RequesterPaymentFromOperation(Service):
 
     def clean(self):
         cleaned_data = super().clean()
-        print("!!!!!!!!!!!cleaned_data!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!cleaned_data!!!!!!!")
         print(str(cleaned_data))
 
         total_amount = cleaned_data.get("total_amount")
@@ -269,24 +276,33 @@ class RequesterPaymentFromOperation(Service):
         #if requester_costs:
         for requester_cost in cleaned_data.get("requester_costs"):
           #     # asignacion de inversionista a costos cumplo
-              print("!!!!!!!!!!!requester_cost!!!!!!!!!!!!!!!!!!!!")
-              print(str(requester_cost))
-
-              requester_cost_amount = requester_cost.clean()
-              print("!!!!!!!!!!!requester_cost_amount!!!!!!!!!!!!!!!!!!!!")
-              print(str(requester_cost_amount))
 
 
+            print("requester_cost-----------------------------")
+            print(str(requester_cost))
+            requester_cost_amount = requester_cost.clean()
+
+            total_amount_cost = total_amount_cost + requester_cost_amount['amount']
+
+            print("requester_cost_amount['account_engine_properties;']-----------------------------")
+            print(str(requester_cost_amount['account_engine_properties']))
+
+            print("requester_cost_amount['billing_properties;']-----------------------------")
+            print(str(requester_cost_amount['billing_properties']))
 
 
-              print("!!!!!!!!!!!requester_cost['amount']")
-              print(requester_cost_amount['amount'])
+        print("TOTAL_AMOUN_COST")
+        print(str(total_amount_cost))
 
-              total_amount_cost = total_amount_cost + requester_cost_amount['amount']
+        print("transfer_amount")
+        print(str(transfer_amount))
 
-              billing_properties=requester_cost_amount.get('billing_properties')
-              print("!!!!!!!!!!!!!!!!!!!!!")
-              print(str(billing_properties))
+        print("total_amount")
+        print(str(total_amount))
+
+
+        print("total_amount_cost + transfer_amount")
+        print(str(total_amount_cost + transfer_amount))
 
         if total_amount_cost + transfer_amount != total_amount:
              raise forms.ValidationError("Los montos no coinciden")
@@ -314,9 +330,6 @@ class RequesterPaymentFromOperation(Service):
         requester_costs = self.cleaned_data['requester_costs']
         asset_type = self.cleaned_data['asset_type']
 
-
-        print("requester_costs")
-        print(requester_costs)
 
         # Get and Process Data
         # TODO: definir transacción de Pago a solicitante
