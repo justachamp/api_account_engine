@@ -14,8 +14,8 @@ class BankRegistryService(Service):
     account_notification_email = forms.EmailField(required=True)
     bank_code = forms.IntegerField(required=True)
     account_bank_type = forms.IntegerField(required=True)
-    account_holder_name = forms.IntegerField(required=True)
-    account_holder_document_number = forms.IntegerField(required=True)
+    account_holder_name = forms.CharField(required=True, max_length=200)
+    account_holder_document_number = forms.CharField(required=True, max_length=12)
 
     def process(self):
 
@@ -36,6 +36,8 @@ class BankRegistryService(Service):
         bank_account.account_notification_email = account_notification_email
         bank_account.bank_code = bank_code
         bank_account.account_bank_type = account_bank_type
+        bank_account.account_holder_name=account_holder_name
+        bank_account.account_holder_document_number = account_holder_document_number
         bank_account.save()
 
         return model_to_dict(bank_account)

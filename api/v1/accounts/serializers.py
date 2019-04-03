@@ -107,11 +107,11 @@ class BankRegistrySerializer(serializers.Serializer):
             {
                 "account": account.id,
                 "bank_account_number": validated_data['bank_account_number'],
-                "account_notification_email": validated_data['account_notification_email'] ,
+                "account_notification_email": validated_data['account_notification_email'],
                 "bank_code": validated_data['bank_code'],
                 "account_bank_type":validated_data['account_bank_type'],
-                "account_holder_name":validated_data['account_holder_name'],
-                "account_holder_document_number":validated_data['account_holder_document_number']
+                "account_holder_name" : validated_data['account_holder_name'],
+                "account_holder_document_number" : validated_data['account_holder_document_number']
 
             }
         )
