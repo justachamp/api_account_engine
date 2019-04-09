@@ -4,7 +4,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from service_objects.errors import InvalidInputsError
 from .serializers import JournalTransactionsSerializer, JournalOperationTransactionsSerializer, \
-    JournalOperationInvestmentTransactionSerializer, JournalRequesterPaymentFromOperationTransactionSerializer
+    JournalOperationInvestmentTransactionSerializer, JournalRequesterPaymentFromOperationTransactionSerializer, \
+    JournalInstalmentPaymentTransactionSerializer
 
 import json
 
@@ -148,18 +149,18 @@ class JournalRequesterPaymentFromOperation(APIView):
         except Exception as e:
              return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-# class JournalInstalmentPaymentTransaction(APIView):
-#
-#     def post(self, request, format=None):
-#         serializer = JournalInstalmentPaymentTransactionSerializer(data=request.data)
-#
-#         # try:
-#         if serializer.is_valid():
-#             # TODO: validar transacciones por doble partida, No aplica
-#             # TODO: Validar que las cuentas no sean la misma
-#             # TODO: Validar transacciones por Materialización
-#             json_data = serializer.save()
-#             return Response(json_data, status=status.HTTP_200_OK)
-#
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class JournalInstalmentPaymentTransaction(APIView):
+
+    def post(self, request, format=None):
+        serializer = JournalInstalmentPaymentTransactionSerializer(data=request.data)
+
+
+        if serializer.is_valid():
+             # TODO: validar transacciones por doble partida, No aplica
+             # TODO: Validar que las cuentas no sean la misma
+             # TODO: Validar transacciones por Materialización
+             json_data = serializer.save()
+             return Response(json_data, status=status.HTTP_200_OK)
+
+        else:
+             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

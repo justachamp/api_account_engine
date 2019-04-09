@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.forms.models import model_to_dict
 from engine.services.transfer_services import TransferToOperationAccountService
-from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation
+from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation, InstalmentPayment
 from django.core.exceptions import ObjectDoesNotExist
 from collection_module.services.collection_services import CreateCollectingRecordService, PayerRecordService
 
@@ -411,16 +411,66 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
     def update(self, instance, validated_data):
         pass
 
-#class InstalmentPaymentFineSerializer(serializers.Serializer):
+
+class InstalmentPaymentSerializers(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
 
 
 
 
-# class JournalInstalmentPaymentTransactionSerializer(serializers.Serializer):
-#         payer_account_id=serializers.IntegerField(required=True)
-#         payer_account_type=serializers.IntegerField(required=True)
-#         external_operation_id=serializers.IntegerField(required=True)
-#         instalment_id=serializers.IntegerField(required=True)
-#         total_amount=serializers.DecimalField(required=True)
-#         instalment_amount=serializers.DecimalField(required=True)
-#         instalment_fines=InstalmentPaymentFineSerializer()
+        return validated_data
+
+    payer_account_id = serializers.IntegerField(required=True)
+    payer_account_type = serializers.IntegerField(required=True)
+    external_operation_id = serializers.IntegerField(required=True)
+    instalment_id = serializers.IntegerField(required=True)
+    instalment_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
+    fine_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
+    pay_date = serializers.DateField(required=True)
+
+
+class JournalInstalmentPaymentTransactionSerializer(serializers.Serializer):
+    instalments = InstalmentPaymentSerializers(many=True)
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        instalments = validated_data['instalments']
+        instalment_list_to_services = []
+        for instalment in instalments:
+            payer_account = Account.objects.get(external_account_id=instalment['payer_account_id'],
+                                                external_account_type_id=instalment['payer_account_type'])
+
+            external_operation_id = instalment['external_operation_id']
+            instalment_id = instalment['instalment_id']
+            instalment_amount = instalment['instalment_amount']
+            fine_amount = instalment['fine_amount']
+            pay_date = instalment['pay_date']
+
+            instalment_list_to_services.append(
+                {
+                    "payer_account_id":payer_account.id,
+                    "external_operation_id":external_operation_id,
+                    "instalment_id":instalment_id,
+                    "instalment_amount":instalment_amount,
+                    "fine_amount":fine_amount,
+                    "pay_date": pay_date,
+                    "asset_type": 1
+                }
+            )
+
+        requester_payment_from_operation = InstalmentPayment.execute(
+            {
+                "instalment_list_to_pay": instalment_list_to_services,
+
+            }
+        )
+
+        return requester_payment_from_operation
+
+
+

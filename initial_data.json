@@ -136,5 +136,15 @@
       "description": "Instruccion de pago a Solicitante"
 
     }
+  },
+  {
+    "model": "engine.JournalTransactionType",
+    "pk": 6,
+    "fields": {
+      "created": "2018-11-14T23:24:16.038Z",
+      "updated": "2018-11-14T23:24:16.038Z",
+      "description": "Instruccion de pago de Cuota de Operación"
+
+    }
   }
 ]
