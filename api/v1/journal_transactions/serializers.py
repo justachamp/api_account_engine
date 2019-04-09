@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from engine.models import Posting, Journal, JournalTransactionType, Account, AssetType, OperationAccount, \
     PaymentRequest, DWHBalanceAccount, BankAccount
+from service_objects.errors import InvalidInputsError
+
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -9,6 +11,7 @@ from engine.services.transfer_services import TransferToOperationAccountService
 from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation, InstalmentPayment
 from django.core.exceptions import ObjectDoesNotExist
 from collection_module.services.collection_services import CreateCollectingRecordService, PayerRecordService
+from django import forms
 
 
 class FromAccountSerializer(serializers.Serializer):
@@ -463,12 +466,15 @@ class JournalInstalmentPaymentTransactionSerializer(serializers.Serializer):
                 }
             )
 
+
         requester_payment_from_operation = InstalmentPayment.execute(
             {
                 "instalment_list_to_pay": instalment_list_to_services,
 
             }
         )
+
+
 
         return requester_payment_from_operation
 
