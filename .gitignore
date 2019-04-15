@@ -98,5 +98,5 @@ include/python3\.6m
 
 
 #secret codeship aes
-cumplo_api_account_engine.aes
+*.aes
 aws-deployment.env
