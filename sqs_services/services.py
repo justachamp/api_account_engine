@@ -26,3 +26,31 @@ class SqsService:
 
         except Exception as exp:
             raise ValueError('Could not send message to SQS')
+
+
+class SnsService:
+    def __init__(self, json_data):
+        self.json_data = json_data
+
+    def push(self, arn, attribute):
+        sns = boto3.client('sns',
+                           region_name=settings.AWS_REGION_VIRGINIA,
+                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                           aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+
+        msg = json.dumps(self.json_data)
+        try:
+            if attribute is None:
+                sns.publish(TopicArn=arn,
+                            Message=msg
+                            )
+            else:
+                attribute = json.dump(attribute)
+                sns.publish(TopicArn=arn,
+                            Message=msg,
+                            MessageAttributes=attribute)
+
+            return True
+
+        except Exception as exp:
+            raise ValueError('Could not send message to SNS')

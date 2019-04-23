@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from engine.models import Posting, Journal, JournalTransactionType, Account, AssetType, OperationAccount, \
-    PaymentRequest, DWHBalanceAccount, BankAccount
+    PaymentRequest, DWHBalanceAccount, BankAccount, Instalment
+
 from service_objects.errors import InvalidInputsError
 
 from decimal import Decimal
@@ -8,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.forms.models import model_to_dict
 from engine.services.transfer_services import TransferToOperationAccountService
-from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation, InstalmentPayment
+from engine.services.transaction_services import FinanceOperationByInvestmentTransaction, RequesterPaymentFromOperation, InstalmentPayment, InvestorPaymentFromOperation
 from django.core.exceptions import ObjectDoesNotExist
 from collection_module.services.collection_services import CreateCollectingRecordService, PayerRecordService
 from django import forms
@@ -290,8 +291,7 @@ class CostSerializer(serializers.Serializer):
         return validated_data
 
     amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
-    billing_properties =  BillingPropertiesSerializers(required=True)
-    #billing_properties = BillingPropertiesSerializers(required=True)
+    billing_properties = BillingPropertiesSerializers(required=True)
     account_engine_properties = AccountEnginePropertiesSerializer(required=True)
 
 
@@ -474,9 +474,102 @@ class JournalInstalmentPaymentTransactionSerializer(serializers.Serializer):
             }
         )
 
+        return requester_payment_from_operation
 
+
+class PaymentToInvestor(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    investor_account_id = serializers.IntegerField(required=True)
+    investor_account_type = serializers.IntegerField(required=True)
+    investment_id = serializers.IntegerField(required=True)
+    total_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
+    investment_instalment_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
+    investment_instalment_cost = CostSerializer(many=True)
+
+
+class JournalInvestorPaymentFromInstalmentOperationSerializer(serializers.Serializer):
+
+
+    def positive_number(value):
+        if value < Decimal(0):
+            raise ValidationError("Must be positive")
+
+    # def validate(self, data):
+    #
+    #     # Validar que los montos cuadren en total
+    #     """
+    #     total_cost = 0
+    #     for requester_cost in data['requester_cost']:
+    #         total_cost = total_cost + requester_cost['amount']
+    #
+    #     if data['transfer_amount'] + total_cost != data['total_amount']:
+    #         raise serializers.ValidationError("los montos a transferir y costos no coinciden con el total")
+    #     """
+    #     try:
+    #         OperationAccount.objects.filter(external_account_type_id=data['external_operation_id'])
+    #
+    #         requester_account = Account.objects.get(external_account_id=data['requester_account_id'],
+    #                                                 external_account_type_id=data['requester_account_type'])
+    #
+    #         bank_account = BankAccount.objects.filter(account=requester_account)[0:1].get()
+    #
+    #     except BankAccount.DoesNotExist as e:
+    #         raise serializers.ValidationError("No hay cuenta Bancaria asociada al solicitante")
+    #
+    #     except Exception as e:
+    #         raise serializers.ValidationError(str(e))
+    #
+    #     return data
+
+    instalment_id = serializers.IntegerField(required=True)
+    instalment_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=2)
+    external_operation_id = serializers.IntegerField(required=True)
+    investors = PaymentToInvestor(many=True, required=True)
+
+    def validate_external_operation_id(self, value):
+        """
+               Check that the blog post is about Django.
+               """
+        operation = OperationAccount.objects.filter(external_account_id=value)
+        if operation.exists():
+            return value
+        raise serializers.ValidationError("la operación no existe")
+
+
+
+    def create(self, validated_data):
+        # requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
+        #                                         external_account_type_id=validated_data['requester_account_type'])
+
+
+        print("validated_data['requester_cost']")
+        print(str(validated_data))
+
+
+        operation = OperationAccount.objects.get(external_account_id=validated_data['external_operation_id'])
+
+
+        new_instalment = Instalment()
+        new_instalment.amount = validated_data['instalment_amount']
+        new_instalment.id = validated_data['instalment_id']
+        new_instalment.operation = operation
+
+
+        requester_payment_from_operation = InvestorPaymentFromOperation.execute(
+            {
+                "instalment": new_instalment,
+                "investors": validated_data['investors']
+            }
+        )
 
         return requester_payment_from_operation
 
+    def update(self, instance, validated_data):
+        pass
 
 

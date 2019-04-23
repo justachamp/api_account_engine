@@ -4,10 +4,10 @@ from rest_framework import routers
 
 
 from .accounts.views import AccountViewSet, OperationAccountViewSet, BalanceAccount, PositiveBalanceAccount, AccountTypeViewSet, BankRegistry
-#from .income_types.views import IncomeTypeViewSet
 from .journals.views import JournalViewSet, JournalTransactionTypeViewSet
 from .journal_transactions.views import JournalTransaction, JournalOperationTransaction,\
-    JournalOperationInvestmentTransaction, JournalRequesterPaymentFromOperation, JournalInstalmentPaymentTransaction
+    JournalOperationInvestmentTransaction, JournalRequesterPaymentFromOperation, JournalInstalmentPaymentTransaction,\
+    JournalInvestorPaymentFromInstalmentOperation
 from .engine_account_transactions.views import TransactionAccountDetail
 
 
@@ -58,6 +58,9 @@ urlpatterns = [
 
     path('journal_transactions/instalment_payment_to_operation/', JournalInstalmentPaymentTransaction.as_view()),
 
+    #Solicitud de pago InvestmentInstalment
+    path('journal_transactions/investor_payment_from_instalment/', JournalInvestorPaymentFromInstalmentOperation.as_view()),
+
 
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
 
@@ -77,8 +80,6 @@ urlpatterns = [
 
     #S4
     #path('bank_transfer/last_transfer_account_data/<str:pk>/', .as_view()),
-
-
 
 
     #Modulo de cobranza y pagos

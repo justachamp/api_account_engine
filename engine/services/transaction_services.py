@@ -5,11 +5,11 @@ from django.conf import settings
 from service_objects.fields import MultipleFormField, ModelField
 from service_objects.services import Service
 from django import forms
-from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount, BankAccount
+from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount, BankAccount, Instalment
 from django.forms.models import model_to_dict
 from django.db.models import Sum
 from engine.services.account_services import DwhAccountAmountService
-from sqs_services.services import SqsService
+from sqs_services.services import SqsService, SnsService
 from engine.utils.InvalidInstalmentError import *
 
 CUMPLO_COST_ACCOUNT = 1
@@ -31,7 +31,8 @@ class GetClientTransaction(CumploService):
         account = Account.objects.get(external_account_id=external_account_id_input,
                                       external_account_type_id=external_account_type_input)
 
-        account_posting = Posting.objects.select_related('journal').values('journal__gloss', 'amount', ).filter(account=account)
+        account_posting = Posting.objects.select_related('journal').values('journal__gloss', 'amount', ).filter(
+            account=account)
 
         # Create collecting record
         list_posting = []
@@ -139,12 +140,10 @@ class AccountEnginePropertiesForm(forms.Field):
     destination_account = DestinationAccountForm()
 
     def clean(self, value):
-
         return value
 
 
 class CostForm(forms.Form):
-
     billing_properties = BillinPropertiesForm(required=True)
     account_engine_properties = AccountEnginePropertiesForm(required=True)
     amount = forms.DecimalField(required=True)
@@ -223,14 +222,46 @@ class FinanceOperationByInvestmentTransaction(Service):
                 'account_id': from_account.id
             }
         )
-        #if settings.DEBUG and settings.DEBUG != True:
+        # if settings.DEBUG and settings.DEBUG != True:
         print("Enviando a SQS")
-        sqs = SqsService(json_data={"result": True,
-                                    "message": "TODO OK",
-                                    "investment_id": investment_id,
-                                    "investor_type": from_account.external_account_type_id
-                                    })
-        sqs.push('response-engine-pay-investment')
+        sns = SnsService(json_data={#"result": True,
+                                     "message": "TODO OK",
+                                     "investment_id": investment_id,
+                                     #"investor_type": from_account.external_account_type_id
+                                     })
+
+
+        #TODO: falta agregar result e investor_type al los atributos de filtro en SNS
+
+
+        # def push(self, arn, attribute):
+
+        attribute = {'entity':{
+                               'DataType': 'String',
+                               'StringValue': 'enterprise'
+                           },
+                           'type': {
+                               'DataType': 'String',
+                                'StringValue': 'response'
+                            },
+                           'status':{
+                               'DataType': 'String',
+                               'StringValue': 'fail'
+                            }
+        }
+
+        sns.push('arn:aws:sns:us-east-1:002311116463:cl-staging-investment-payment', attribute)
+
+
+        # sqs = SqsService(json_data={"result": True,
+        #                             "message": "TODO OK",
+        #                             "investment_id": investment_id,
+        #                             "investor_type": from_account.external_account_type_id
+        #                             })
+
+        #sqs.push('response-engine-pay-investment')
+
+
         # else:
         #     print("No se envia a SQS")
 
@@ -260,35 +291,33 @@ class RequesterPaymentFromOperation(Service):
         operation_data = OperationAccount.objects.get(external_account_id=external_operation_id)
         operation_financing_total_amount = Posting.objects.filter(account=operation_data).aggregate(Sum('amount'))
 
-         # 2- que la operacion tenga suficiente financiamiento para pagar al solicitante y todos los costos asociados
+        # 2- que la operacion tenga suficiente financiamiento para pagar al solicitante y todos los costos asociados
 
         if operation_financing_total_amount['amount__sum'] is None or operation_financing_total_amount[
-             'amount__sum'] < total_amount:
-             raise forms.ValidationError(
-                 "La operacion No tiene Financiamiento suficiente para pagar el total de la transacción")
+            'amount__sum'] < total_amount:
+            raise forms.ValidationError(
+                "La operacion No tiene Financiamiento suficiente para pagar el total de la transacción")
 
         # 3- que los costos mas el monto a transferir sean iguales a el monto total de la transferencia
         total_amount_cost = 0
-        #if requester_costs:
+        # if requester_costs:
         for requester_cost in cleaned_data.get("requester_costs"):
-          #     # asignacion de inversionista a costos cumplo
+            #     # asignacion de inversionista a costos cumplo
 
             requester_cost_amount = requester_cost.clean()
 
             total_amount_cost = total_amount_cost + requester_cost_amount['amount']
 
-
         if total_amount_cost + transfer_amount != total_amount:
-             raise forms.ValidationError("Los montos no coinciden")
+            raise forms.ValidationError("Los montos no coinciden")
 
         # 4- que los costos no sean mayor que el monto a transferir al solicitante
 
         if total_amount_cost > transfer_amount:
-             raise forms.ValidationError(
-                  "Los costos asociados al pago son mayores que el monto a transferir al solicitante")
+            raise forms.ValidationError(
+                "Los costos asociados al pago son mayores que el monto a transferir al solicitante")
 
-        #5- Validar cuentas bancarias
-
+        # 5- Validar cuentas bancarias
 
         return cleaned_data
 
@@ -304,14 +333,11 @@ class RequesterPaymentFromOperation(Service):
         requester_costs = self.cleaned_data['requester_costs']
         asset_type = self.cleaned_data['asset_type']
 
-
         # Get and Process Data
         # TODO: definir transacción de Pago a solicitante
         journal_transaction = JournalTransactionType.objects.get(id=transaction_type)
         from_account = OperationAccount.objects.get(external_account_id=external_operation_id)
         cumplo_operation_bank_account = Account.objects.get(external_account_type_id=4, external_account_id=2)
-
-
 
         to_requester_account = Account.objects.get(id=account)
 
@@ -324,30 +350,26 @@ class RequesterPaymentFromOperation(Service):
         ################################################################################################################
         ################################################################################################################
 
-
-
         # TODO: Llamar al modulo de facturación
         # asignacion de inversionista a costos cumplo
         total_amount_cost = 0
         for requester_cost in requester_costs:
-
             total_amount_cost = total_amount_cost + requester_cost.cleaned_data['amount']
 
         if total_amount_cost + transfer_amount != total_amount:
-
             raise Exception("Montos totales no coinciden")
 
         # Creacion de asiento
         journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
-                                          journal_transaction=journal_transaction)
+                                         journal_transaction=journal_transaction)
 
         # Descuento a la cuenta de operacion por el monto total
         posting_from = Posting.objects.create(account=from_account, asset_type=asset_type, journal=journal,
-                                               amount=(Decimal(total_amount) * -1))
+                                              amount=(Decimal(total_amount) * -1))
 
         # Asignacion de inversionista a operacion
         posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
-                                             amount=Decimal(transfer_amount))
+                                            amount=Decimal(transfer_amount))
 
         to_requestor_account_bank = BankAccount.objects.filter(
             account=to_requester_account).order_by('-updated')[0:1]
@@ -355,18 +377,15 @@ class RequesterPaymentFromOperation(Service):
         from_account_bank = BankAccount.objects.filter(
             account=cumplo_operation_bank_account).order_by('-updated')[0:1]
 
-
         if to_requestor_account_bank.exists():
             to_requestor_account_bank = to_requestor_account_bank.get()
         else:
             raise Exception("No hay cuenta bancaria registrada para el solicitante. Operación Cancelada!!")
 
-
         if from_account_bank.exists():
             from_account_bank = from_account_bank.get()
         else:
             raise Exception("No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
-
 
         DwhAccountAmountService.execute(
             {
@@ -381,27 +400,27 @@ class RequesterPaymentFromOperation(Service):
 
         # TODO: DEFINIR COLA PARA ENVIAR ENVIAR INFO DE PAGO A SOLICITANTE
 
-
         # if settings.DEBUG and settings.DEBUG != True:
         #     print("Enviando a SQS")
         #
 
-        #TODO: DEFINIR COLA PARA ENVIAR LA CONFIRMACION DEL PAGO DE LA CUOTA
+        # TODO: DEFINIR COLA PARA ENVIAR LA CONFIRMACION DEL PAGO DE LA CUOTA
         sqs = SqsService(json_data={
-                             "origin_account": from_account_bank.bank_account_number,
-                             "beneficiary_name": to_requestor_account_bank.account_holder_name,
-                             "document_number": to_requestor_account_bank.account_holder_document_number,
-                             "email": to_requestor_account_bank.account_notification_email,
-                             "mesagge": journal_transaction.description,
-                             "destination_account": to_requestor_account_bank.bank_account_number,
-                             "transfer_amount": str(transfer_amount),
-                             "currency_type": "CLP",
-                             "paysheet_line_type" : "requestor"
-                                     })
+            "origin_account": from_account_bank.bank_account_number,
+            "beneficiary_name": to_requestor_account_bank.account_holder_name,
+            "document_number": to_requestor_account_bank.account_holder_document_number,
+            "email": to_requestor_account_bank.account_notification_email,
+            "mesagge": journal_transaction.description,
+            "destination_account": to_requestor_account_bank.bank_account_number,
+            "transfer_amount": str(transfer_amount),
+            "currency_type": "CLP",
+            "paysheet_line_type": "requestor"
+        })
+
         sqs.push('sqs_account_engine_payment_requestor')
 
-
         return model_to_dict(journal_transaction)
+
 
 class InstalmentsForms(forms.Form):
     payer_account_id = forms.IntegerField(required=True)
@@ -428,7 +447,7 @@ class InstalmentsForms(forms.Form):
     #         return cleaned_data
     #     else:
     #         return forms.ValidationError("El pagador no tiene monto suficiente para pagar el monto de Cuota "+str(Decimal(
-    #             instalment_amount + fine_amount))+" - Monto pagador: "+str(payer_posting_amount['amount__sum'])+ "payer id:"+str(payer_account_id))
+    #             instalment_amount + fine_amount))+" - Monto p agador: "+str(payer_posting_amount['amount__sum'])+ "payer id:"+str(payer_account_id))
 
 
 class InstalmentPayment(Service):
@@ -480,14 +499,12 @@ class InstalmentPayment(Service):
         else:
             return cleaned_data
 
-
-
     def process(self):
         # TODO: modificar este valor en duro
 
         transaction_type = 6  # Pago de cuotas
         # Get Data
-        instalments_ok_for_notification=[]
+        instalments_ok_for_notification = []
         for instalment in self.cleaned_data['instalment_list_to_pay']:
             payer_account_id = instalment.cleaned_data['payer_account_id']
             external_operation_id = instalment.cleaned_data['external_operation_id']
@@ -496,7 +513,6 @@ class InstalmentPayment(Service):
             fine_amount = instalment.cleaned_data['fine_amount']
             pay_date = instalment.cleaned_data['pay_date']
             asset_type = instalment.cleaned_data['asset_type']
-
 
             # Get and Process Data
             # TODO: definir transacción de Pago a solicitante
@@ -512,18 +528,15 @@ class InstalmentPayment(Service):
 
             # Creacion de asiento
             journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
-                                              journal_transaction=journal_transaction)
+                                             journal_transaction=journal_transaction)
 
             # Descuento a la cuenta de operacion por el monto total
             posting_from = Posting.objects.create(account=from_payer_account, asset_type=asset_type, journal=journal,
-                                                   amount=(Decimal(instalment_amount + fine_amount ) * -1))
+                                                  amount=(Decimal(instalment_amount + fine_amount) * -1))
 
             # Asignacion de inversionista a operacion
             posting_to = Posting.objects.create(account=to_operation_account, asset_type=asset_type, journal=journal,
-                                                 amount=Decimal(instalment_amount + fine_amount ))
-
-
-
+                                                amount=Decimal(instalment_amount + fine_amount))
 
             DwhAccountAmountService.execute(
                 {
@@ -537,8 +550,8 @@ class InstalmentPayment(Service):
             )
             instalments_ok_for_notification.append(
                 {
-                    "pay_date":str(pay_date),
-                    "id":instalment_id
+                    "pay_date": str(pay_date),
+                    "id": instalment_id
                 }
             )
 
@@ -546,13 +559,131 @@ class InstalmentPayment(Service):
 
         #
 
-        #TODO: DEFINIR COLA PARA ENVIAR LA CONFIRMACION DEL PAGO DE LA CUOTA
+        # TODO: DEFINIR COLA PARA ENVIAR LA CONFIRMACION DEL PAGO DE LA CUOTA
         sqs = SqsService(json_data={
-                            "result":"OK",
-                            "operation_id":external_operation_id,
-                             "instalments": instalments_ok_for_notification,
-                                     })
+            "result": "OK",
+            "operation_id": external_operation_id,
+            "instalments": instalments_ok_for_notification,
+        })
         sqs.push('sqs_account_engine_instalment_payment_notification')
 
-
         return model_to_dict(journal_transaction)
+
+
+class PaymentToInvestorForm(forms.Form):
+    investor_account_id = forms.IntegerField(required=True)
+    investor_account_type = forms.IntegerField(required=True)
+
+    investment_id = forms.IntegerField(required=True)
+    total_amount = forms.DecimalField(required=True)
+    investment_instalment_amount = forms.DecimalField(required=True)
+    investment_instalment_cost = MultipleFormField(CostForm, required=False)
+
+    def clean(self):
+        pass
+
+
+
+
+class InvestorPaymentFromOperation(Service):
+    #external_operation_id = forms.IntegerField(required=True)
+    instalment = ModelField(Instalment)
+
+    investors = MultipleFormField(PaymentToInvestorForm, required=False)
+
+    # Validaciones que implica la operacion de pagar al solicitane
+    def clean(self):
+
+        print("!!!!!!!!CLEAN SELF!!!!!!!!!!!")
+        print(str(self))
+        cleaned_data = super().clean()
+        external_operation_id = cleaned_data.get("external_operation_id")
+        instalment = cleaned_data.get("instalment")
+        instalment_amount = cleaned_data.get("instalment_amount")
+        instalment.save()
+        investors = cleaned_data.get('investors')
+        print("!!!!!!!!!!!!!!!!instalment!!!!!!!!!!!!!!!")
+        print(str(instalment))
+        total_investment_instalment = 0
+        for investor in investors:
+            print("!!!!!!!!!!!!!!!!investor!!!!!!!!!!!!!!!")
+            print(str(investor))
+
+
+
+            investment_instalment_total_amount = investor.cleaned_data.get('total_amount')
+            print("!!!!!!!!!!!!!!!!investment_instalment_total_amount!!!!!!!!!!!!!!!")
+            print(str(investment_instalment_total_amount))
+
+            total_investment_instalment = total_investment_instalment + investment_instalment_total_amount
+
+            for invinstal_cost in investor.cleaned_data.get('investment_instalment_cost'):
+                investment_instalment_total_amount = investor.cleaned_data.get('total_amount')
+
+
+        if total_investment_instalment > instalment_amount :
+            raise forms.ValidationError("Montos de InvestmentInstalments e instalment No coinciden por "+str(total_investment_instalment))
+                #
+        #
+        # print("total_investment_instalment")
+        # print(total_investment_instalment)
+        #
+        # for investment_instalment_cost in investment_instalment_costs:
+        #     investment_instalment_cost_total_amount = investment_instalment_cost.clean()['amount']
+        #     total_investment_instalment = total_investment_instalment + investment_instalment_cost_total_amount
+        #
+        # if total_investment_instalment + investment_instalment_amount != total_amount:
+        #     raise forms.ValidationError("Montos de InvestmentInstalment y Costos no coinciden")
+        #
+        # else:
+        #     return cleaned_data
+
+
+
+
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     total_amount = cleaned_data.get("total_amount")
+    #     transfer_amount = cleaned_data.get("transfer_amount")
+    #     external_operation_id = cleaned_data.get("external_operation_id")
+    #     operation_data = OperationAccount.objects.get(external_account_id=external_operation_id)
+    #     operation_financing_total_amount = Posting.objects.filter(account=operation_data).aggregate(Sum('amount'))
+    #
+    #      # 2- que la operacion tenga suficiente financiamiento para pagar al solicitante y todos los costos asociados
+    #
+    #     if operation_financing_total_amount['amount__sum'] is None or operation_financing_total_amount[
+    #          'amount__sum'] < total_amount:
+    #          raise forms.ValidationError(
+    #              "La operacion No tiene Financiamiento suficiente para pagar el total de la transacción")
+    #
+    #     # 3- que los costos mas el monto a transferir sean iguales a el monto total de la transferencia
+    #     total_amount_cost = 0
+    #     #if requester_costs:
+    #     for requester_cost in cleaned_data.get("requester_costs"):
+    #       #     # asignacion de inversionista a costos cumplo
+    #
+    #         requester_cost_amount = requester_cost.clean()
+    #
+    #         total_amount_cost = total_amount_cost + requester_cost_amount['amount']
+    #
+    #
+    #     if total_amount_cost + transfer_amount != total_amount:
+    #          raise forms.ValidationError("Los montos no coinciden")
+    #
+    #     # 4- que los costos no sean mayor que el monto a transferir al solicitante
+    #
+    #     if total_amount_cost > transfer_amount:
+    #          raise forms.ValidationError(
+    #               "Los costos asociados al pago son mayores que el monto a transferir al solicitante")
+    #
+    #     #5- Validar cuentas bancarias
+    #
+    #
+    #     return cleaned_data
+
+    def process(self):
+        print("PROCESS!!!!!!!!!!")
+        investor = self.cleaned_data['investors']
+        print(str(investor))
+
+        return str(investor)
