@@ -1,8 +1,10 @@
 - type: serial
   service: account_engine
   steps:
-  - command: ./docker-entrypoint.sh bootstrap
-  - command: python manage.py test
+    - name: load database for testing
+      command: ./docker-entrypoint.sh bootstrap
+    - name: Unity testing
+      command: python manage.py test
 - service: awsdeployment
-  tag: master
+  tag: devel
   command: codeship_aws eb_deploy /deploy CumploAccountEngine account-engine-master elasticbeanstalk-us-east-1-002311116463
