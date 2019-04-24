@@ -45,7 +45,7 @@ class SnsService:
                             Message=msg
                             )
             else:
-                attribute = json.dump(attribute)
+
                 sns.publish(TopicArn=arn,
                             Message=msg,
                             MessageAttributes=attribute)
@@ -53,4 +53,24 @@ class SnsService:
             return True
 
         except Exception as exp:
-            raise ValueError('Could not send message to SNS')
+            raise ValueError(str(exp))
+
+    def make_attributes(self, entity=None, type=None, status=None):
+
+        attributes = {}
+        if entity:
+            attributes["entity"] = {
+                "DataType": "String",
+                "StringValue": entity
+            }
+        if type:
+            attributes["type"] = {
+                "DataType": "String",
+                "StringValue": type
+            }
+        if status:
+            attributes["status"] = {
+                "DataType": "String",
+                "StringValue": status
+            }
+        return attributes

@@ -90,6 +90,7 @@ if 'RDS_DB_NAME' in os.environ:
             'PASSWORD': os.environ['RDS_PASSWORD'],
             'HOST': os.environ['RDS_HOSTNAME'],
             'PORT': os.environ['RDS_PORT'],
+            'ATOMIC_REQUESTS': True,
         },
         'primary': {
             'ENGINE': 'django.db.backends.mysql',
@@ -225,4 +226,4 @@ AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID_TREASURY')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY_TREASURY')
 TREASURY_SQS_URL = os.environ.get('TREASURY_SQS_URL')
-TREASURY_SQS_URL = os.environ.get('AWS_REGION_VIRGINIA')
+AWS_REGION_VIRGINIA = os.environ.get('AWS_REGION_VIRGINIA')

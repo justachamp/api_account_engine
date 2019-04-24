@@ -304,22 +304,6 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
     investment_amount = serializers.DecimalField(required=True, max_digits=20, decimal_places=5)
     investment_cost = CostSerializer(many=True)
 
-    def validate(self, data):
-        # Validar que los montos cuadren en total
-        total_cost = 0
-        for invesment_cost in data['investment_cost']:
-            total_cost = total_cost + invesment_cost['amount']
-
-        if data['investment_amount'] + total_cost != data['total_amount']:
-            raise serializers.ValidationError("los montos de inversion y costos no coinciden con el total")
-        try:
-            OperationAccount.objects.filter(external_account_type_id=data['external_operation_id'])
-
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
-
-        return data
-
     def update(self, instance, validated_data):
         pass
 
@@ -328,19 +312,24 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
         investor_account = Account.objects.get(external_account_id=validated_data['investor_account_id'],
                                                external_account_type_id=validated_data['investor_account_type'])
 
-        financing_response = FinanceOperationByInvestmentTransaction.execute(
-            {
-                'account': investor_account.id,
-                'investment_id': validated_data['investment_id'],
-                'total_amount': validated_data['total_amount'],
-                'investment_amount': validated_data['investment_amount'],
-                'investment_costs': validated_data['investment_cost'],
-                'external_operation_id': validated_data['external_operation_id'],
-                # TODO: definir el asset_type según sistema con que interactura
-                'asset_type': 1
-            }
-        )
-        return financing_response
+        try:
+
+            financing_response = FinanceOperationByInvestmentTransaction.execute(
+                {
+                    'account': investor_account.id,
+                    'investment_id': validated_data['investment_id'],
+                    'total_amount': validated_data['total_amount'],
+                    'investment_amount': validated_data['investment_amount'],
+                    'investment_costs': validated_data['investment_cost'],
+                    'external_operation_id': validated_data['external_operation_id'],
+                    # TODO: definir el asset_type según sistema con que interactura
+                    'asset_type': 1
+                }
+            )
+            return financing_response
+
+        except Exception as e:
+            raise e
 
 
 class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Serializer):
@@ -354,9 +343,6 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
 
         # Validar que los montos cuadren en total
         """
-
-
-
         total_cost = 0
         for requester_cost in data['requester_cost']:
             total_cost = total_cost + requester_cost['amount']
@@ -563,7 +549,8 @@ class JournalInvestorPaymentFromInstalmentOperationSerializer(serializers.Serial
         requester_payment_from_operation = InvestorPaymentFromOperation.execute(
             {
                 "instalment": new_instalment,
-                "investors": validated_data['investors']
+                "investors": validated_data['investors'],
+                "asset_type" : 1
             }
         )
 

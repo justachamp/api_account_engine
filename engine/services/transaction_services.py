@@ -161,9 +161,172 @@ class FinanceOperationByInvestmentTransaction(Service):
     investment_costs = MultipleFormField(CostForm, required=False)
     external_operation_id = forms.IntegerField(required=True)
     asset_type = forms.IntegerField(required=True)
+    """
+     def validate(self, data):
+        # Validar que los montos cuadren en total
+        total_cost = 0
+       
+
+        return data
+
+    """
+
+    def clean(self):
+        print("CLEAN START")
+        total_cost = 0
+        cleaned_data = super().clean()
+        investment_id=cleaned_data.get('investment_id')
+        external_operation_id=cleaned_data.get('external_operation_id')
+        account_id=cleaned_data.get('account')
+        print("FLAG 1")
+        print(cleaned_data.get('investment_costs'))
+        list_validation_investment_error = []
+
+        for invesment_cost in cleaned_data.get('investment_costs'):
+            print(str(invesment_cost.cleaned_data.get('amount')))
+            print("invesment_cost")
+            total_cost = total_cost + invesment_cost.cleaned_data.get('amount')
+
+        if cleaned_data.get('investment_amount') + total_cost != cleaned_data.get('total_amount'):
+
+            investment_error = {
+                "error": 'los montos de inversion y costos no coinciden con el total'
+            }
+
+            list_validation_investment_error.append(investment_error)
+            #raise forms.ValidationError("los montos de inversion y costos no coinciden con el total")
+        try:
+            OperationAccount.objects.filter(external_account_type_id=external_operation_id)
+
+            print("account_id")
+            print(account_id)
+
+            investor_account = Account.objects.get(id=account_id)
+
+            print("INVESTOR ID")
+            print(investor_account.id)
+
+            investor_amount_to_pay = Posting.objects.filter(account_id=investor_account.id).aggregate(Sum('amount'))
+
+            # posting = Posting(account)
+            print("AMOUNT INVESTOR")
+            print(str(investor_amount_to_pay['amount__sum']))
+            print("MONTO A PAGAR")
+            print(str(Decimal(
+                    cleaned_data.get('investment_amount') + total_cost)))
+            if investor_amount_to_pay['amount__sum'] is not None and investor_amount_to_pay['amount__sum'] >= Decimal(
+                    cleaned_data.get('investment_amount') + total_cost):
+                print("VALIDACION MONTO INVERSIONISTA OK")
+                pass
+            else:
+                print("VALIDACION MONTO INVERSIONISTA NOT OK")
+                investment_error = {
+                    "message": 'El inversionista no tiene monto suficiente para pagar el monto de la inversion:' + str(
+                        investment_id) + "- Monto Actual en cuenta inversionista:" + str(investor_amount_to_pay['amount__sum'])
+                }
+                list_validation_investment_error.append(investment_error)
+
+            if len(list_validation_investment_error) > 0:
+
+                sns = SnsService(json_data={  # "result": True,
+                    "message": str(list_validation_investment_error),
+                    "investment_id": investment_id,
+                    # "investor_type": from_account.external_account_type_id
+                })
+
+                # TODO: falta agregar result e investor_type al los atributos de filtro en SNS
+
+                # def push(self, arn, attribute):
+                investor_type = ""
+                if investor_account.external_account_type_id == 1:  # PERSONA
+                    investor_type = "user"
+                elif investor_account.external_account_type_id == 2:  # Empresa
+                    investor_type = "enterprise"
+                else:
+                    raise ValueError("Investor Type Error")
+
+                attribute = sns.make_attributes(investor_type, "response", "fail")
+                print("mensaje a SNS de error")
+                print(sns.json_data)
+
+                sns.push('arn:aws:sns:us-east-1:002311116463:cl-staging-investment-payment', attribute )
+
+                # sqs = SqsService(json_data={
+                #     "result": "NOT-OK",
+                #     "operation_id": external_operation_id,
+                #     "instalments": list_validation_payment_error
+                # })
+                # sqs.push('sqs_account_engine_instalment_payment_notification')
+
+                raise forms.ValidationError(list_validation_investment_error)
+
+            # instalment_error = {
+            #     "id": investment_id,
+            #     "message": 'El pagador no tiene monto suficiente para pagar el monto de Cuota ID:' + str(
+            #         instalment_id) + "- Monto Actual en cuenta pagador:" + str(payer_posting_amount['amount__sum'])
+            # }
+
+        except Exception as e:
+            raise forms.ValidationError(str(e))
+
+        print("total_cost")
+        print(total_cost)
+
+        return cleaned_data
+
+        """
+        if data['investment_amount'] + total_cost != data['total_amount']:
+            raise serializers.ValidationError("los montos de inversion y costos no coinciden con el total")
+        try:
+            OperationAccount.objects.filter(external_account_type_id=data['external_operation_id'])
+
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+        
+            def clean(self):
+        cleaned_data = super().clean()
+
+        list_validation_payment_error = []
+        for instalment in cleaned_data.get('instalment_list_to_pay'):
+
+            payer_account_id = instalment.cleaned_data["payer_account_id"]
+            instalment_amount = instalment.cleaned_data["instalment_amount"]
+            fine_amount = instalment.cleaned_data["fine_amount"]
+            instalment_id = instalment.cleaned_data["instalment_id"]
+            pay_date = instalment.cleaned_data['pay_date']
+            external_operation_id = instalment.cleaned_data['external_operation_id']
+            payer_posting_amount = Posting.objects.filter(account_id=payer_account_id).aggregate(Sum('amount'))
+            # posting = Posting(account)
+            if payer_posting_amount['amount__sum'] is not None and payer_posting_amount['amount__sum'] >= Decimal(
+                    instalment_amount + fine_amount):
+                pass
+            else:
+                instalment_error = {
+                    "id": instalment_id,
+                    "pay_date": str(pay_date),
+                    "message": 'El pagador no tiene monto suficiente para pagar el monto de Cuota ID:' + str(
+                        instalment_id) + "- Monto Actual en cuenta pagador:" + str(payer_posting_amount['amount__sum'])
+                }
+                list_validation_payment_error.append(instalment_error)
+
+        if len(list_validation_payment_error) > 0:
+
+            sqs = SqsService(json_data={
+                "result": "NOT-OK",
+                "operation_id": external_operation_id,
+                "instalments": list_validation_payment_error
+            })
+            sqs.push('sqs_account_engine_instalment_payment_notification')
+
+            raise forms.ValidationError(list_validation_payment_error)
+        else:
+            return cleaned_data"""
+
 
     def process(self):
         # TODO: modificar este valor en duro
+        print("PROCESS FINACING START")
         transaction_type = 4  # Financiamiento de operación por Inversión
         # Get Data
         account = self.cleaned_data['account']
@@ -223,9 +386,10 @@ class FinanceOperationByInvestmentTransaction(Service):
             }
         )
         # if settings.DEBUG and settings.DEBUG != True:
-        print("Enviando a SQS")
+        print("Enviando a SNS")
+
         sns = SnsService(json_data={#"result": True,
-                                     "message": "TODO OK",
+                                     "message": "OK",
                                      "investment_id": investment_id,
                                      #"investor_type": from_account.external_account_type_id
                                      })
@@ -235,22 +399,19 @@ class FinanceOperationByInvestmentTransaction(Service):
 
 
         # def push(self, arn, attribute):
+        investor_type=""
+        if from_account.external_account_type_id == 1: #PERSONA
+            investor_type="user"
+        elif from_account.external_account_type_id == 2: #Empresa
+            investor_type="enterprise"
+        else:
+            raise ValueError("Investor Type Error")
 
-        attribute = {'entity':{
-                               'DataType': 'String',
-                               'StringValue': 'enterprise'
-                           },
-                           'type': {
-                               'DataType': 'String',
-                                'StringValue': 'response'
-                            },
-                           'status':{
-                               'DataType': 'String',
-                               'StringValue': 'fail'
-                            }
-        }
+        attribute = sns.make_attributes(investor_type ,  "response" , "success" )
+        print("mensaje a SNS")
+        print(sns.json_data)
 
-        sns.push('arn:aws:sns:us-east-1:002311116463:cl-staging-investment-payment', attribute)
+        #sns.push('arn:aws:sns:us-east-1:002311116463:cl-staging-investment-payment', attribute )
 
 
         # sqs = SqsService(json_data={"result": True,
@@ -588,6 +749,7 @@ class PaymentToInvestorForm(forms.Form):
 class InvestorPaymentFromOperation(Service):
     #external_operation_id = forms.IntegerField(required=True)
     instalment = ModelField(Instalment)
+    asset_type = forms.IntegerField(required=True)
 
     investors = MultipleFormField(PaymentToInvestorForm, required=False)
 
@@ -604,6 +766,8 @@ class InvestorPaymentFromOperation(Service):
         investors = cleaned_data.get('investors')
         print("!!!!!!!!!!!!!!!!instalment!!!!!!!!!!!!!!!")
         print(str(instalment))
+        print("!!!!!!!!!!!!!!!!instalment AMOUNT!!!!!!!!!!!!!!!----")
+        print(str(instalment.amount))
         total_investment_instalment = 0
         for investor in investors:
             print("!!!!!!!!!!!!!!!!investor!!!!!!!!!!!!!!!")
@@ -621,8 +785,8 @@ class InvestorPaymentFromOperation(Service):
                 investment_instalment_total_amount = investor.cleaned_data.get('total_amount')
 
 
-        if total_investment_instalment > instalment_amount :
-            raise forms.ValidationError("Montos de InvestmentInstalments e instalment No coinciden por "+str(total_investment_instalment))
+        if total_investment_instalment > instalment.amount :
+            raise forms.ValidationError("Montos de InvestmentInstalments e instalment No coinciden por "+str(total_investment_instalment - instalment.amount ))
                 #
         #
         # print("total_investment_instalment")
@@ -641,49 +805,85 @@ class InvestorPaymentFromOperation(Service):
 
 
 
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     total_amount = cleaned_data.get("total_amount")
-    #     transfer_amount = cleaned_data.get("transfer_amount")
-    #     external_operation_id = cleaned_data.get("external_operation_id")
-    #     operation_data = OperationAccount.objects.get(external_account_id=external_operation_id)
-    #     operation_financing_total_amount = Posting.objects.filter(account=operation_data).aggregate(Sum('amount'))
-    #
-    #      # 2- que la operacion tenga suficiente financiamiento para pagar al solicitante y todos los costos asociados
-    #
-    #     if operation_financing_total_amount['amount__sum'] is None or operation_financing_total_amount[
-    #          'amount__sum'] < total_amount:
-    #          raise forms.ValidationError(
-    #              "La operacion No tiene Financiamiento suficiente para pagar el total de la transacción")
-    #
-    #     # 3- que los costos mas el monto a transferir sean iguales a el monto total de la transferencia
-    #     total_amount_cost = 0
-    #     #if requester_costs:
-    #     for requester_cost in cleaned_data.get("requester_costs"):
-    #       #     # asignacion de inversionista a costos cumplo
-    #
-    #         requester_cost_amount = requester_cost.clean()
-    #
-    #         total_amount_cost = total_amount_cost + requester_cost_amount['amount']
-    #
-    #
-    #     if total_amount_cost + transfer_amount != total_amount:
-    #          raise forms.ValidationError("Los montos no coinciden")
-    #
-    #     # 4- que los costos no sean mayor que el monto a transferir al solicitante
-    #
-    #     if total_amount_cost > transfer_amount:
-    #          raise forms.ValidationError(
-    #               "Los costos asociados al pago son mayores que el monto a transferir al solicitante")
-    #
-    #     #5- Validar cuentas bancarias
-    #
-    #
-    #     return cleaned_data
+
 
     def process(self):
         print("PROCESS!!!!!!!!!!")
-        investor = self.cleaned_data['investors']
-        print(str(investor))
+        investor_payments = self.cleaned_data['investors']
+        instalment = self.cleaned_data['instalment']
+        asset_type = self.cleaned_data['asset_type']
+        print("Operation ID::")
+        print(str(instalment.operation_id))
 
-        return str(investor)
+        journal = Journal.objects.get(id=7)#Transaccion de pago a inversionista
+
+        #POSTING ORIGEN
+        origin_account_transaction = Posting()
+        origin_account_transaction.amount = (instalment.amount * -1)
+        origin_account_transaction.account = instalment.operation
+        origin_account_transaction.journal = journal
+        origin_account_transaction.asset_type_id = asset_type
+        origin_account_transaction.save()
+
+
+        #POSTING DESTINO
+        for investor_payment in investor_payments:
+
+            investor_account = Account.objects.get(external_account_id=investor_payment.cleaned_data['investor_account_id'],
+                                external_account_type_id=investor_payment.cleaned_data['investor_account_type'])
+
+            if investor_payment.cleaned_data['investment_instalment_amount'] == 100500001:
+                raise ValueError("Simulando Error")
+
+            print("Investor instalment amount")
+            print(investor_payment.cleaned_data['investment_instalment_cost'])
+            investor_account_transaction = Posting()
+            investor_account_transaction.amount = investor_payment.cleaned_data['investment_instalment_amount']
+            investor_account_transaction.account = investor_account
+            investor_account_transaction.asset_type_id = asset_type
+            investor_account_transaction.journal = journal
+            investor_account_transaction.save()
+
+            #for investment_instalment_cost in investor_payment.cleaned_data['investment_instalment_cost']:
+
+                #cost_transaction = process_cost(investment_instalment_cost, asset_type)
+
+
+        return model_to_dict(origin_account_transaction)
+
+
+
+def process_cost(investment_instalment_cost, asset_type, journal):
+    print("--------------investment_instalment_cost-------------")
+    print(str(
+        investment_instalment_cost.cleaned_data['amount']))
+
+    print(str(investment_instalment_cost.cleaned_data['billing_properties']))
+
+    print(str(investment_instalment_cost.cleaned_data['account_engine_properties']['destination_account']['id']))
+
+    cost_account = Account.objects.get(
+        external_account_id=investment_instalment_cost.cleaned_data['account_engine_properties']['destination_account'][
+            'id'],
+        external_account_type_id=4)
+
+    cost_account_transaction = Posting()
+    cost_account_transaction.amount = investment_instalment_cost.cleaned_data['amount']
+    cost_account_transaction.account = cost_account
+    cost_account_transaction.asset_type_id = asset_type
+    cost_account_transaction.journal = journal
+    cost_account_transaction.save()
+
+
+    if investment_instalment_cost.cleaned_data['billing_properties'] == True:
+        print("ENVIO A MODULO DE FACTURACION")
+
+
+    elif investment_instalment_cost.cleaned_data['billing_properties'] == False:
+        print("SIN ENVIO A MODULO DE FACTURACION - costo no facturable")
+
+    return cost_account_transaction
+
+
+
+

@@ -78,11 +78,14 @@ class JournalOperationTransaction(APIView):
 
 
 class JournalOperationInvestmentTransaction(APIView):
+
     """
     List all batches or create a new batch with journals
     """
 
     def post(self, request, format=None):
+        like_api = False
+        PROCESS_DATA_OK_FOR_SNS="OK"
         """
         Create a new Batch with this format
         {
@@ -100,27 +103,26 @@ class JournalOperationInvestmentTransaction(APIView):
         try:
             if serializer.is_valid():
 
-                print("Estructura valida para JournalTransaction")
-                # TODO: validar transacciones por doble partida, No aplica
-
-                # TODO: Validar que las cuentas no sean la misma
-
-                # TODO: Validar transacciones por Materialización
-                # if make_virtual_payment_materialization(serializer.data['from_account'], serializer.data['amount']):
                 json_data = serializer.save()
-                return Response(json_data, status=status.HTTP_200_OK)
-
+                if like_api:
+                    return Response(json_data, status=status.HTTP_200_OK)
+                else:
+                    return Response(PROCESS_DATA_OK_FOR_SNS, status=status.HTTP_200_OK)
 
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except InvalidInputsError as e:
-
-            return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
+            if like_api:
+                return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(PROCESS_DATA_OK_FOR_SNS, status=status.HTTP_200_OK)
 
         except Exception as e:
-
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            if like_api:
+                return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(PROCESS_DATA_OK_FOR_SNS, status=status.HTTP_200_OK)
 
 
 class JournalRequesterPaymentFromOperation(APIView):
