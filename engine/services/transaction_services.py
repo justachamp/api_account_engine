@@ -310,7 +310,7 @@ class FinanceOperationByInvestmentTransaction(Service):
         print("mensaje a SNS")
         print(sns.json_data)
 
-        #sns.push('arn:aws:sns:us-east-1:002311116463:cl-staging-investment-payment', attribute )
+        sns.push('arn:aws:sns:us-east-1:002311116463:cl-staging-investment-payment', attribute )
 
 
         # sqs = SqsService(json_data={"result": True,
