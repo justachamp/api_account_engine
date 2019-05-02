@@ -5,6 +5,8 @@ from django.conf import settings
 from service_objects.fields import MultipleFormField, ModelField
 from service_objects.services import Service
 from django import forms
+
+from accountengine.utils import generate_sns_topic
 from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, OperationAccount, BankAccount, Instalment
 from django.forms.models import model_to_dict
 from django.db.models import Sum
@@ -478,6 +480,16 @@ class RequesterPaymentFromOperation(Service):
         })
 
         sqs.push('sqs_account_engine_payment_requestor')
+
+        # Send SNS to confirm the payment (to financing)
+        sns = SnsService()
+        sns_topic = generate_sns_topic(settings.SNS_LOAN_PAYMENT)
+        arn = sns.get_arn_by_name(sns_topic)
+        attribute = sns.make_attributes(type='response', status='success')
+
+        payload = {'operation_id': external_operation_id}
+
+        sns.push(arn, attribute, payload)
 
         return model_to_dict(journal_transaction)
 
