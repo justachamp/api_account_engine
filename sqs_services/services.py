@@ -9,7 +9,7 @@ class SqsService:
 
     def push(self, queue_name):
         sqs = boto3.resource('sqs',
-                             region_name=settings.AWS_REGION_NAME,
+                             region_name=settings.AWS_REGION_OHIO,
                              aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                              aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
