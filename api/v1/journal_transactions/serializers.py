@@ -92,8 +92,7 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
         #
         # if:
         #     raise serializers.ValidationError("las cuentas de destino y origen son iguales")
-        print("Flag 1")
-        print(data)
+
         try:
             from_account = Account.objects.get(external_account_id=data['from_account']['external_account_id'],
                                                external_account_type_id=data['from_account']['external_account_type'])
@@ -193,8 +192,6 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
                     'external_payer_id': from_account.external_account_id,
                     'contact_data': 'blabla@gmail.com'
                 })
-                print(payer.external_id)
-                print("Servicio crear pagador terminado")
 
                 # recordServices = CreateCollectingRecordService.execute({
                 #     'collecting_amount': to_account.financing_amount,
@@ -245,7 +242,7 @@ class BillingPropertiesSerializers(serializers.Serializer):
         return validated_data
 
     billable = serializers.BooleanField(required=True)
-    billing_entity = serializers.CharField(required=True)
+    billing_entity = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     #TODO: TAX, validar con Barbara si es necesario este campo para presentación de info en datos de Facturación
 
 
@@ -381,8 +378,7 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
                                                 external_account_type_id=validated_data['requester_account_type'])
 
 
-        print("validated_data['requester_cost']")
-        print(str(validated_data['requester_cost']))
+
 
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {
@@ -531,10 +527,6 @@ class JournalInvestorPaymentFromInstalmentOperationSerializer(serializers.Serial
     def create(self, validated_data):
         # requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
         #                                         external_account_type_id=validated_data['requester_account_type'])
-
-
-        print("validated_data['requester_cost']")
-        print(str(validated_data))
 
 
         operation = OperationAccount.objects.get(external_account_id=validated_data['external_operation_id'])

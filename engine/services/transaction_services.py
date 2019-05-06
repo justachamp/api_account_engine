@@ -18,6 +18,26 @@ from engine.utils.InvalidInstalmentError import *
 CUMPLO_COST_ACCOUNT = 1
 
 
+def costTransaction( transaction_cost_list, payment_cost_account, journal, asset_type):
+    print("CostTransaction::::::::::::")
+    print(str(transaction_cost_list))
+    for requester_cost in transaction_cost_list:
+        print(requester_cost.cleaned_data['amount'])
+        print(str(requester_cost.cleaned_data['billing_properties']))
+        print(str(requester_cost.cleaned_data['account_engine_properties']['destination_account']['id']))
+        # Descuento a la cuenta de operacion por el monto total
+
+        cumplo_operation_asesorias = Account.objects.get(external_account_type_id=4, external_account_id=
+        requester_cost.cleaned_data['account_engine_properties']['destination_account']['id'])
+
+        posting_from = Posting.objects.create(account=payment_cost_account, asset_type=asset_type, journal=journal,
+                                              amount=(Decimal(requester_cost.cleaned_data['amount']) * -1))
+
+        # Asignacion de inversionista a operacion
+        posting_to = Posting.objects.create(account=cumplo_operation_asesorias, asset_type=asset_type, journal=journal,
+                                            amount=Decimal(requester_cost.cleaned_data['amount']))
+
+
 class CumploService(Service):
     pass
 
@@ -126,7 +146,13 @@ Categories = (
 
 class BillinPropertiesForm(forms.Field):
     billable = forms.BooleanField(required=True)
-    billing_entity = forms.CharField(required=True)
+    billing_entity = forms.CharField(required=False)
+
+    def clean(self, value):
+        print("BILLING PROPERTIES")
+        print(str(value))
+
+        return value
 
 
 class SubAccountForm(forms.Field):
@@ -386,6 +412,7 @@ class RequesterPaymentFromOperation(Service):
 
     def process(self):
         # TODO: modificar este valor en duro
+        print("PROCESS RequesterPaymentFromOperation")
 
         transaction_type = 5  # Pago a solicitante
         # Get Data
@@ -421,7 +448,6 @@ class RequesterPaymentFromOperation(Service):
 
         if total_amount_cost + transfer_amount != total_amount:
             raise Exception("Montos totales no coinciden")
-
         # Creacion de asiento
         journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
                                          journal_transaction=journal_transaction)
@@ -432,7 +458,7 @@ class RequesterPaymentFromOperation(Service):
 
         # Asignacion de inversionista a operacion
         posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
-                                            amount=Decimal(transfer_amount))
+                                            amount=Decimal(total_amount)) ## al solicitante se le gira el total delmonto y se le descuentan los costos con costTransaction
 
         to_requestor_account_bank = BankAccount.objects.filter(
             account=to_requester_account).order_by('-updated')[0:1]
@@ -449,6 +475,10 @@ class RequesterPaymentFromOperation(Service):
             from_account_bank = from_account_bank.get()
         else:
             raise Exception("No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
+
+
+        costTransaction(requester_costs,to_requester_account, journal,asset_type)
+
 
         DwhAccountAmountService.execute(
             {
@@ -468,31 +498,38 @@ class RequesterPaymentFromOperation(Service):
         #
 
         # TODO: DEFINIR COLA PARA ENVIAR LA CONFIRMACION DEL PAGO DE LA CUOTA
-        sqs = SqsService(json_data={
-            "origin_account": from_account_bank.bank_account_number,
-            "beneficiary_name": to_requestor_account_bank.account_holder_name,
-            "document_number": to_requestor_account_bank.account_holder_document_number,
-            "email": to_requestor_account_bank.account_notification_email,
-            "mesagge": journal_transaction.description,
-            "destination_account": to_requestor_account_bank.bank_account_number,
-            "transfer_amount": str(transfer_amount),
-            "currency_type": "CLP",
-            "paysheet_line_type": "requestor"
-        })
-
-        sqs.push('sqs_account_engine_payment_requestor')
+        # sqs = SqsService(json_data={
+        #     "origin_account": from_account_bank.bank_account_number,
+        #     "beneficiary_name": to_requestor_account_bank.account_holder_name,
+        #     "document_number": to_requestor_account_bank.account_holder_document_number,
+        #     "email": to_requestor_account_bank.account_notification_email,
+        #     "mesagge": journal_transaction.description,
+        #     "destination_account": to_requestor_account_bank.bank_account_number,
+        #     "transfer_amount": str(transfer_amount),
+        #     "currency_type": "CLP",
+        #     "paysheet_line_type": "requestor"
+        # })
+        #
+        # sqs.push('sqs_account_engine_payment_requestor')
 
         # Send SNS to confirm the payment (to financing)
         sns = SnsServiceLibrary()
         sns_topic = generate_sns_topic(settings.SNS_LOAN_PAYMENT)
         arn = sns.get_arn_by_name(sns_topic)
+        arn = sns.get_arn_by_name(sns_topic)
         attribute = sns.make_attributes(type='response', status='success')
+
 
         payload = {'operation_id': external_operation_id}
 
-        sns.push(arn, attribute, payload)
+        #sns.push(arn, attribute, payload)
 
-        return model_to_dict(journal_transaction)
+        return model_to_dict(journal)
+
+
+
+
+
 
 
 class InstalmentsForms(forms.Form):
@@ -795,6 +832,72 @@ def process_cost(investment_instalment_cost, asset_type, journal):
         print("SIN ENVIO A MODULO DE FACTURACION - costo no facturable")
 
     return cost_account_transaction
+
+
+
+
+class CostTransactionService(Service):
+    """
+    "requester_cost":
+	[
+			{
+				"amount":10,
+				"billing_properties":
+
+					{
+						 "billing_entity": "",
+               "billable": false
+					}
+
+				,
+				"account_engine_properties":
+
+					{
+						"destination_account":{
+							"id":1
+						}
+					}
+
+
+			}
+	]
+
+	class DwhAccountAmountService(Service):
+
+    account_id = forms.CharField(required=True, max_length=150)
+
+    def process(self):
+        account_id_input = self.cleaned_data['account_id']
+        account_to_update = Account.objects.get(id=account_id_input)
+        dwh_balance_account = Posting.objects.filter(account=account_to_update).aggregate(Sum('amount'))
+        balance_update=DWHBalanceAccount.objects.update_or_create(account=account_to_update, defaults={
+                'balance_account_amount': dwh_balance_account['amount__sum']})
+
+        return balance_update
+    """
+    transaction_costs = CostForm()
+
+    # Validaciones que implica la operacion de pagar al solicitane
+
+    def process(self):
+        # if requester_costs:
+
+        print("TRANSACTION COST")
+        transaction_costs = self.cleaned_data['transaction_costs']
+        print(str(transaction_costs))
+        #for requester_cost in requester_costs:
+            #     # asignacion de inversionista a costos cumplo
+
+            #requester_cost_amount = requester_cost.clean()
+
+        #     total_amount_cost = total_amount_cost + requester_cost_amount['amount']
+        #
+        # if total_amount_cost + transfer_amount != total_amount:
+        #     raise forms.ValidationError("Los montos no coinciden")
+
+
+
+
 
 
 
