@@ -84,7 +84,7 @@ class JournalOperationInvestmentTransaction(APIView):
     """
 
     def post(self, request, format=None):
-        like_api = False
+        like_api = True
         PROCESS_DATA_OK_FOR_SNS="OK"
         """
         Create a new Batch with this format
@@ -123,7 +123,6 @@ class JournalOperationInvestmentTransaction(APIView):
                 return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response(PROCESS_DATA_OK_FOR_SNS, status=status.HTTP_200_OK)
-
 
 class JournalRequesterPaymentFromOperation(APIView):
 

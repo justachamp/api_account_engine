@@ -306,6 +306,7 @@ class JournalOperationInvestmentTransactionSerializer(serializers.Serializer):
 
     def create(self, validated_data):
 
+
         investor_account = Account.objects.get(external_account_id=validated_data['investor_account_id'],
                                                external_account_type_id=validated_data['investor_account_type'])
 
