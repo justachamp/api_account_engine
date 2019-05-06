@@ -52,20 +52,6 @@ class JournalSerializer(serializers.HyperlinkedModelSerializer):
         return journal
 
 
-"""
-def check_materiality(journal):
-    posting_from_account = Posting.objects.all().filter(account=journal.from_account).aggregate(Sum('amount'))
-    posting_amount = 0
-    if posting_from_account is not None:
-        posting_amount = posting_from_account['amount__sum']
-    print(posting_amount)
-    print(journal.amount)
-    if posting_amount < journal.amount:
-        return False
-    else:
-        return True
-"""
-
 
 class BatchPutSerializer(serializers.ModelSerializer):
     """

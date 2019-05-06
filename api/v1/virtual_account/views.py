@@ -13,7 +13,6 @@ class VirtualAccountDeposit(APIView):
     List all batches or create a new batch with journals
     """
     def get(self, request, format=None):
-        print("GET BATCH!!!")
         """
         List all batches
         """
@@ -34,20 +33,11 @@ class VirtualAccountDeposit(APIView):
         :return: a new journal
         """
 
-        print("Flag 1")
         serializer= VirtualAccountDepositSerializer(data=request.data)
         if serializer.is_valid():
-            print("Estructura valida para VirtualAccountDepositSerializer")
-            #TODO: validar que el id de cuenta real y cuenta virtual estan vinculadas
-           # if make_real_virtual_deposit_validation(serializer.data['real_account'], serializer.data['virtual_account'],serializer.data['amount']):
-            #try:
+
             data = serializer.save()
-            print("Journal Save")
-            print(data)
             return Response(model_to_dict(data), status=status.HTTP_201_CREATED)
-            #else:
-
-
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -42,8 +42,6 @@ class OperationAccountSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
 
     def create(self, validated_data):
-        print(str(validated_data))
-
         requester = Account.objects.get(external_account_id=validated_data['requester_account_id'],
                             external_account_type_id=2)
 
@@ -86,8 +84,7 @@ class BankRegistrySerializer(serializers.Serializer):
 
     def validate(self, data):
         try:
-            print("flag -1")
-            print(data)
+
             Account.objects.get(external_account_id=data['external_account_id'],
                                 external_account_type_id=data['external_account_type'])
             return data
@@ -101,8 +98,6 @@ class BankRegistrySerializer(serializers.Serializer):
     def create(self, validated_data):
         account = Account.objects.get(external_account_id=validated_data['external_account_id'], external_account_type_id=validated_data['external_account_type'])
 
-        print("account")
-        print(account.id)
         bank_registry = BankRegistryService.execute(
             {
                 "account": account.id,

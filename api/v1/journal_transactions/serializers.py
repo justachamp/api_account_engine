@@ -88,17 +88,11 @@ class JournalOperationTransactionsSerializer(serializers.Serializer):
     asset_type = serializers.IntegerField(required=True)
 
     def validate(self, data):
-        # data['from_account'] == data['to_account']
-        #
-        # if:
-        #     raise serializers.ValidationError("las cuentas de destino y origen son iguales")
-
         try:
             from_account = Account.objects.get(external_account_id=data['from_account']['external_account_id'],
                                                external_account_type_id=data['from_account']['external_account_type'])
             account_posting_amount = Posting.objects.filter(account=from_account).aggregate(Sum('amount'))
-            # posting = Posting(account)
-            # print(account_posting_amount)
+
             if account_posting_amount['amount__sum'] is not None and account_posting_amount['amount__sum'] >= Decimal(
                     data['amount']):
                 return data

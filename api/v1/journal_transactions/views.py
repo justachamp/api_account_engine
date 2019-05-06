@@ -7,9 +7,6 @@ from .serializers import JournalTransactionsSerializer, JournalOperationTransact
     JournalOperationInvestmentTransactionSerializer, JournalRequesterPaymentFromOperationTransactionSerializer, \
     JournalInstalmentPaymentTransactionSerializer, JournalInvestorPaymentFromInstalmentOperationSerializer
 
-import json
-
-
 class JournalTransaction(APIView):
 
     def get(self, request, format=None):
@@ -32,13 +29,6 @@ class JournalTransaction(APIView):
 
         serializer = JournalTransactionsSerializer(data=request.data)
         if serializer.is_valid():
-            print("Estructura valida para JournalTransaction")
-            # TODO: validar transacciones por doble partida, No aplica
-
-            # TODO: Validar que las cuentas no sean la misma
-
-            # TODO: Validar transacciones por Materialización
-
             json_data = serializer.save()
             return Response(json_data, status=status.HTTP_201_OK)
 
@@ -63,13 +53,6 @@ class JournalOperationTransaction(APIView):
 
         serializer = JournalOperationTransactionsSerializer(data=request.data)
         if serializer.is_valid():
-            print("Estructura valida para JournalTransaction")
-            # TODO: validar transacciones por doble partida, No aplica
-
-            # TODO: Validar que las cuentas no sean la misma
-
-            # TODO: Validar transacciones por Materialización
-            # if make_virtual_payment_materialization(serializer.data['from_account'], serializer.data['amount']):
             json_data = serializer.save()
             return Response(json_data, status=status.HTTP_200_OK)
 
@@ -168,7 +151,6 @@ class JournalInstalmentPaymentTransaction(APIView):
                  return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except InvalidInputsError as e:
 
-            print(e.errors.values())
             return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except ValueError as e:
@@ -196,13 +178,10 @@ class JournalInvestorPaymentFromInstalmentOperation(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except InvalidInputsError as e:
-            print("InvalidInputsError")
             return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except ValueError as e:
-            print("ValueError")
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            print("EXCEPTION")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
