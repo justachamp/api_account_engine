@@ -50,8 +50,7 @@ urlpatterns = [
     #Motor de Cuentas
     path('batches/', BatchList.as_view(), name='batch-list'),
     path('batches/<int:pk>/', BatchDetail.as_view(), name='batch-detail'),
-    path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
-    path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
+
     path('journal_transactions/financing_operation/investment', JournalOperationInvestmentTransaction.as_view()),
     #Solicitud de pago a Solicitante
     path('journal_transactions/requester_payment_from_operation/', JournalRequesterPaymentFromOperation.as_view()),
@@ -81,10 +80,6 @@ urlpatterns = [
     #S4
     #path('bank_transfer/last_transfer_account_data/<str:pk>/', .as_view()),
 
-
-    #Modulo de cobranza y pagos
-    path('payment_services/', PaymentTransaction.as_view(), name='payment-transaction'),
-
     #Modulo de Facturación
     path('billing/add_billing_transaction', BillingTransaction.as_view(), name='add-billing-transaction'),
     path('billing/billing_payer/', BillingPayerView.as_view()),
@@ -93,15 +88,15 @@ urlpatterns = [
 
     #Modulo de Transferencias Bancarias
     path('account/billing_payer/<str:pk>/', BillingPayerView.as_view()),
-
-
     #modulo de Nóminas
     path('transaction/account_transaction/<str:pk>/', BillingPayerView.as_view()),
-
-
     #Bank Registry
     path('account/bank_registry/', BankRegistry.as_view())
-
+    #Validar o eliminar
+    #path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
+    #path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
+    #Modulo de cobranza y pagos
+    path('payment_services/', PaymentTransaction.as_view(), name='payment-transaction'),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
 api_urlpatterns = router.urls + urlpatterns

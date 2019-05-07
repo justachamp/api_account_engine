@@ -67,7 +67,7 @@ class JournalOperationInvestmentTransaction(APIView):
     """
 
     def post(self, request, format=None):
-        like_api = True
+        like_api = False
         PROCESS_DATA_OK_FOR_SNS="OK"
         """
         Create a new Batch with this format

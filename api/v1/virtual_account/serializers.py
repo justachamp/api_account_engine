@@ -6,7 +6,6 @@ from engine.services.account_services import RealToVirtualDepositService
 
 
 class VirtualAccountDepositSerializer(serializers.Serializer):
-    #transaction_type = serializers.IntegerField(required=True)
     real_account = serializers.CharField(required=True, max_length=150)
     external_account_id = serializers.CharField(required=True, max_length=150)
     external_account_type = serializers.CharField(required=True, max_length=150)
@@ -27,7 +26,6 @@ class VirtualAccountDepositSerializer(serializers.Serializer):
                                               external_account_type_id=validated_data['external_account_type'])
         asset_type = AssetType.objects.get(id=validated_data['asset_type'])
         journal_transaction_type = JournalTransactionType.objects.get(id=validated_data['asset_type'])
-        print("Llamando al servicio RealToVirtualDepositService")
         posting = RealToVirtualDepositService.execute(
             {
                 "real_account_id": validated_data['real_account'],

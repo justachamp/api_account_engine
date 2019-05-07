@@ -1,7 +1,6 @@
 from service_objects.services import Service
 from django import forms
 from engine.models import JournalTransactionType, Journal, Posting, AssetType, Account, DWHBalanceAccount
-from django.forms.models import model_to_dict
 from django.db.models import Sum
 import logging
 from django.db.models import F
@@ -38,8 +37,8 @@ class RealToVirtualDepositService(Service):
             posting_data = Posting.objects.create(account=account, journal=journal, amount=amount_input,
                                                   asset_type=asset_type)
 
-            logging.getLogger("error_logger").error("Se ha creado ");
-            logging.getLogger("error_logger").info("creado el usuario");
+            logging.getLogger("error_logger").error("Se ha creado ")
+            logging.getLogger("error_logger").info("creado el usuario")
 
             dwh_balance_account = Posting.objects.filter(account=account).aggregate(Sum('amount'))
 
