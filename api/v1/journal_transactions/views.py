@@ -7,6 +7,7 @@ from .serializers import JournalTransactionsSerializer, JournalOperationTransact
     JournalOperationInvestmentTransactionSerializer, JournalRequesterPaymentFromOperationTransactionSerializer, \
     JournalInstalmentPaymentTransactionSerializer, JournalInvestorPaymentFromInstalmentOperationSerializer
 
+
 class JournalTransaction(APIView):
 
     def get(self, request, format=None):

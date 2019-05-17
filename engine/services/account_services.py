@@ -7,7 +7,6 @@ from django.db.models import F
 
 
 class RealToVirtualDepositService(Service):
-    db_transaction = True
     real_account_id = forms.IntegerField(required=True)
     virtual_account_id = forms.IntegerField(required=True)
     asset_type_id = forms.IntegerField(required=True)
@@ -36,9 +35,6 @@ class RealToVirtualDepositService(Service):
 
             posting_data = Posting.objects.create(account=account, journal=journal, amount=amount_input,
                                                   asset_type=asset_type)
-
-            logging.getLogger("error_logger").error("Se ha creado ")
-            logging.getLogger("error_logger").info("creado el usuario")
 
             dwh_balance_account = Posting.objects.filter(account=account).aggregate(Sum('amount'))
 

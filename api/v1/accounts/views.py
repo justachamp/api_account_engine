@@ -11,6 +11,7 @@ class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
 
+
 class AccountTypeViewSet(ModelViewSet):
     queryset = AccountType.objects.all()
     serializer_class = AccountTypeSerializer

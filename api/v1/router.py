@@ -27,18 +27,29 @@ router.register(r'accounts', AccountViewSet)
 router.register(r'operation_account', OperationAccountViewSet)
 router.register(r'account_type', AccountTypeViewSet)
 
-router.register(r'asset_types', AssetTypeViewSet)
-router.register(r'batch_states', BatchStateViewSet)
+
+
+
 router.register(r'journals', JournalViewSet)
-router.register(r'postings', PostingViewSet)
 router.register(r'journal_transaction_type', JournalTransactionTypeViewSet)
 
+
+
+router.register(r'postings', PostingViewSet)
+
+
+######################################DESCARTADOS#######################################
 
 #CAPA DE DATOS MODULO DE COBRANZA
 router.register(r'payment_request', GuaranteeDocumentViewSet)
 
 #CAPA DE DATOS MODULO DE Facturacion (BillingModule)
 router.register(r'billing_reazon', BillingReasonViewSet)
+
+router.register(r'asset_types', AssetTypeViewSet)# PENDIENTE, NO NECESARIO
+
+
+router.register(r'batch_states', BatchStateViewSet)# PENDIENTE, NO NECESARIO
 
 
 
@@ -51,6 +62,8 @@ urlpatterns = [
     path('batches/', BatchList.as_view(), name='batch-list'),
     path('batches/<int:pk>/', BatchDetail.as_view(), name='batch-detail'),
 
+
+
     path('journal_transactions/financing_operation/investment', JournalOperationInvestmentTransaction.as_view()),
     #Solicitud de pago a Solicitante
     path('journal_transactions/requester_payment_from_operation/', JournalRequesterPaymentFromOperation.as_view()),
@@ -62,6 +75,14 @@ urlpatterns = [
 
 
     path('virtual_account_deposit/', VirtualAccountDeposit.as_view(), name='virtual-account-deposit'),
+
+
+
+
+
+
+
+
 
 
     #S1
@@ -81,7 +102,7 @@ urlpatterns = [
     #path('bank_transfer/last_transfer_account_data/<str:pk>/', .as_view()),
 
     #Modulo de Facturación
-    path('billing/add_billing_transaction', BillingTransaction.as_view(), name='add-billing-transaction'),
+    path('billing/add_billing_transaction', BillingTransaction.as_view(), name='add-billing-transaction'), 
     path('billing/billing_payer/', BillingPayerView.as_view()),
     path('billing/billing_payer/<int:pk>/', BillingPayerView.as_view()),
 

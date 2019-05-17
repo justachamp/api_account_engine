@@ -19,6 +19,11 @@ from engine.utils.InvalidInstalmentError import *
 CUMPLO_COST_ACCOUNT = 1
 
 
+# ACCOUNT common
+################################################################################################################
+################################################################################################################
+################################################################################################################
+################################################################################################################
 def costTransaction(transaction_cost_list, payment_cost_account, journal, asset_type):
 
     for requester_cost in transaction_cost_list:
@@ -31,6 +36,12 @@ def costTransaction(transaction_cost_list, payment_cost_account, journal, asset_
         # Asignacion de inversionista a operacion
         posting_to = Posting.objects.create(account=cumplo_operation_asesorias, asset_type=asset_type, journal=journal,
                                             amount=Decimal(requester_cost.cleaned_data['amount']))
+
+# ACCOUNT common
+################################################################################################################
+################################################################################################################
+################################################################################################################
+################################################################################################################
 
 
 class CumploService(Service):
@@ -206,6 +217,14 @@ class FinanceOperationByInvestmentTransaction(Service):
 
             investor_account = Account.objects.get(id=account_id)
 
+
+
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################ç
+
+
+
             investor_amount_to_pay = Posting.objects.filter(account_id=investor_account.id).aggregate(Sum('amount'))
 
             if investor_amount_to_pay['amount__sum'] is not None and investor_amount_to_pay['amount__sum'] >= Decimal(
@@ -246,7 +265,6 @@ class FinanceOperationByInvestmentTransaction(Service):
         return cleaned_data
 
     def process(self):
-        # TODO: modificar este valor en duro
         transaction_type = 4  # Financiamiento de operación por Inversión
         # Get Data
         account = self.cleaned_data['account']
@@ -268,7 +286,9 @@ class FinanceOperationByInvestmentTransaction(Service):
         # Traigo la cuenta de cumplo asesorias
         cumplo_cost_account = Account.objects.get(id=CUMPLO_COST_ACCOUNT)
 
-        # Create Data
+        # ACCOUNT common
+        ################################################################################################################
+        ################################################################################################################
         ################################################################################################################
         ################################################################################################################
 
@@ -287,6 +307,11 @@ class FinanceOperationByInvestmentTransaction(Service):
         # asignacion de inversionista a costos cumplo
         if investment_costs:
             costTransaction(investment_costs, from_account, journal, asset_type)
+
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
 
 
         DwhAccountAmountService.execute(
@@ -416,6 +441,14 @@ class RequesterPaymentFromOperation(Service):
 
         if total_amount_cost + transfer_amount != total_amount:
             raise Exception("Montos totales no coinciden")
+
+
+
+        # ACCOUNT common
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
         # Creacion de asiento
         journal = Journal.objects.create(batch=None, gloss=journal_transaction.description,
                                          journal_transaction=journal_transaction)
@@ -428,6 +461,14 @@ class RequesterPaymentFromOperation(Service):
         posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
                                             amount=Decimal(
                                                 total_amount))  ## al solicitante se le gira el total delmonto y se le descuentan los costos con costTransaction
+
+
+
+        # ACCOUNT common
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
 
         to_requestor_account_bank = BankAccount.objects.filter(
             account=to_requester_account).order_by('-updated')[0:1]
@@ -570,7 +611,9 @@ class InstalmentPayment(Service):
 
             asset_type = AssetType.objects.get(id=asset_type)
 
-            # Create Data
+            # ACCOUNT common
+            ################################################################################################################
+            ################################################################################################################
             ################################################################################################################
             ################################################################################################################
 
@@ -596,6 +639,13 @@ class InstalmentPayment(Service):
                     'account_id': to_operation_account.id
                 }
             )
+
+            # ACCOUNT common
+            ################################################################################################################
+            ################################################################################################################
+            ################################################################################################################
+            ################################################################################################################
+
             instalments_ok_for_notification.append(
                 {
                     "pay_date": str(pay_date),
@@ -692,6 +742,13 @@ class InvestorPaymentFromOperation(Service):
         origin_account_transaction.asset_type = asset_type
         origin_account_transaction.save()
 
+
+        # ACCOUNT common
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
+
         # POSTING DESTINO
         for investor_payment in investor_payments:
             investor_account = Account.objects.get(
@@ -715,4 +772,10 @@ class InvestorPaymentFromOperation(Service):
                     'account_id': investor_account.id
                 }
             )
+
+        # ACCOUNT common
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
+        ################################################################################################################
         return model_to_dict(journal)
