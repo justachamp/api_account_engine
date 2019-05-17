@@ -91,7 +91,7 @@ urlpatterns = [
     #modulo de Nóminas
     path('transaction/account_transaction/<str:pk>/', BillingPayerView.as_view()),
     #Bank Registry
-    path('account/bank_registry/', BankRegistry.as_view())
+    path('account/bank_registry/', BankRegistry.as_view()),
     #Validar o eliminar
     #path('journal_transactions/', JournalTransaction.as_view(), name='journal-transaction'),
     #path('journal_transactions/operation', JournalOperationTransaction.as_view(), name='journal-transaction/operation'),
