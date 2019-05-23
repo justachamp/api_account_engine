@@ -323,7 +323,6 @@ class FinanceOperationByInvestmentTransaction(Service):
 
         # sqs.push('response-engine-pay-investment')
 
-
         return model_to_dict(journal)
 
 
@@ -381,6 +380,8 @@ class RequesterPaymentFromOperation(Service):
         return cleaned_data
 
     def process(self):
+        SEND_SNS=True
+
         # TODO: modificar este valor en duro
         transaction_type = 5  # Pago a solicitante
         # Get Data
@@ -411,6 +412,8 @@ class RequesterPaymentFromOperation(Service):
         # TODO: Llamar al modulo de facturación
         # asignacion de inversionista a costos cumplo
         total_amount_cost = 0
+
+
         for requester_cost in requester_costs:
             total_amount_cost = total_amount_cost + requester_cost.cleaned_data['amount']
 
@@ -428,6 +431,8 @@ class RequesterPaymentFromOperation(Service):
         posting_to = Posting.objects.create(account=to_requester_account, asset_type=asset_type, journal=journal,
                                             amount=Decimal(
                                                 total_amount))  ## al solicitante se le gira el total delmonto y se le descuentan los costos con costTransaction
+
+        #IR A CUENTA POR PAGAR DE CUMPLO V/S SOLICITANTE por
 
         to_requestor_account_bank = BankAccount.objects.filter(
             account=to_requester_account).order_by('-updated')[0:1]
@@ -459,30 +464,48 @@ class RequesterPaymentFromOperation(Service):
         )
 
 
-        # TODO: DEFINIR COLA PARA ENVIAR LA CONFIRMACION DEL PAGO DE LA CUOTA
-        # sqs = SqsService(json_data={
-        #     "origin_account": from_account_bank.bank_account_number,
-        #     "beneficiary_name": to_requestor_account_bank.account_holder_name,
-        #     "document_number": to_requestor_account_bank.account_holder_document_number,
-        #     "email": to_requestor_account_bank.account_notification_email,
-        #     "mesagge": journal_transaction.description,
-        #     "destination_account": to_requestor_account_bank.bank_account_number,
-        #     "transfer_amount": str(transfer_amount),
-        #     "currency_type": "CLP",
-        #     "paysheet_line_type": "requestor"
-        # })
-        #
-        # sqs.push('sqs_account_engine_payment_requestor')
 
-        # Send SNS to confirm the payment (to financing)
-        sns = SnsServiceLibrary()
-        sns_topic = generate_sns_topic(settings.SNS_LOAN_PAYMENT)
-        arn = sns.get_arn_by_name(sns_topic)
-        attribute = sns.make_attributes(type='response', status='success')
 
-        payload = {'operation_id': external_operation_id}
+        if SEND_SNS:
+            # Send SNS to confirm the payment (to financing)
+            sns = SnsServiceLibrary()
+            sns_topic = generate_sns_topic(settings.SNS_LOAN_PAYMENT)
 
-        sns.push(arn, attribute, payload)
+            arn = sns.get_arn_by_name(sns_topic)
+
+            attribute = sns.make_attributes(type='response', status='success')
+
+            payload = {'operation_id': external_operation_id}
+
+            sns.push(arn, attribute, payload)
+
+            # Send to Treasury - Paysheet
+
+            sns = SnsServiceLibrary()
+
+            sns_topic = generate_sns_topic(settings.SNS_TREASURY_PAYSHEET)
+
+            arn = sns.get_arn_by_name(sns_topic)
+
+            attribute = {}#sns.make_attributes(type='response', status='success')
+
+
+
+            payload = {
+                 "origin_account": from_account_bank.bank_account_number,
+                 "beneficiary_name": to_requestor_account_bank.account_holder_name,
+                 "document_number": to_requestor_account_bank.account_holder_document_number,
+                 "email": to_requestor_account_bank.account_notification_email,
+                 "message": "Pago a Solicitante",#journal_transaction.description,
+                 "destination_account": to_requestor_account_bank.bank_account_number,
+                 "transfer_amount": f'{transfer_amount:.2f}',#.format(transfer_amount)), #Decimal(transfer_amount, round(2))),
+                 "currency_type": "CLP",
+                 "paysheet_line_type": "requestor",
+                 "bank_code" : to_requestor_account_bank.bank_code
+            }
+
+
+            sns.push(arn, attribute, payload)
 
         return model_to_dict(journal)
 
@@ -512,6 +535,7 @@ class InstalmentPayment(Service):
         cleaned_data = super().clean()
 
         list_validation_payment_error = []
+
         for instalment in cleaned_data.get('instalment_list_to_pay'):
 
             payer_account_id = instalment.cleaned_data["payer_account_id"]
@@ -648,8 +672,38 @@ class InvestorPaymentFromOperation(Service):
         instalment.save()
         investors = cleaned_data.get('investors')
 
+        cumplo_operation_bank_account = Account.objects.get(external_account_type_id=4, external_account_id=2)
+        from_account_bank = BankAccount.objects.filter(
+            account=cumplo_operation_bank_account).order_by('-updated')[0:1]
+        if from_account_bank.exists():
+            from_account_bank = from_account_bank.get()
+        else:
+            raise forms.ValidationError(
+                "No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
+
         total_investment_instalment = 0
         for investor in investors:
+
+            investor_account = Account.objects.get(
+                external_account_id=investor.cleaned_data['investor_account_id'],
+                external_account_type_id=investor.cleaned_data['investor_account_type'])
+
+            investor_bank_account = BankAccount.objects.filter(account=investor_account).order_by('-updated')[0:1]
+            if investor_bank_account.exists():
+                investor_bank_account = investor_bank_account.get()
+                if investor_bank_account.account_holder_document_number == "" or investor_bank_account.account_holder_document_number is None:
+                    raise forms.ValidationError(
+                        "account_holder_document_number Empty")
+
+                if investor_bank_account.account_holder_name == "" or investor_bank_account.account_holder_name is None:
+                    raise forms.ValidationError(
+                        "account_holder_name Empty")
+
+            else:
+                raise forms.ValidationError(
+                    "No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
+
+            ##################################
 
             investment_instalment_total_amount = investor.cleaned_data.get('total_amount')
 
@@ -674,6 +728,17 @@ class InvestorPaymentFromOperation(Service):
         investor_payments = self.cleaned_data['investors']
         instalment = self.cleaned_data['instalment']
         asset_type = self.cleaned_data['asset_type']
+
+        #Datos de cuenta Cumplo
+        cumplo_operation_bank_account = Account.objects.get(external_account_type_id=4, external_account_id=2)
+
+        from_account_bank = BankAccount.objects.filter(
+            account=cumplo_operation_bank_account).order_by('-updated')[0:1]
+        if from_account_bank.exists():
+            from_account_bank = from_account_bank.get()
+        else:
+            raise forms.ValidationError(
+                "No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
 
         # journal = Journal.objects.get(id=7)#Transaccion de pago a inversionista
 
@@ -700,10 +765,10 @@ class InvestorPaymentFromOperation(Service):
 
             # if investor_payment.cleaned_data['investment_instalment_amount'] == 100500001:
             #     raise ValueError("Simulando Error")
-
+            investor_amount =Decimal(investor_payment.cleaned_data['total_amount'])
             investment_instalment_costs = investor_payment.cleaned_data['investment_instalment_cost']
             investor_account_transaction = Posting()
-            investor_account_transaction.amount = Decimal(investor_payment.cleaned_data['total_amount'])
+            investor_account_transaction.amount = investor_amount
             investor_account_transaction.account = investor_account
             investor_account_transaction.asset_type = asset_type
             investor_account_transaction.journal = journal
@@ -715,4 +780,41 @@ class InvestorPaymentFromOperation(Service):
                     'account_id': investor_account.id
                 }
             )
+            investor_bank_account = BankAccount.objects.filter(account=investor_account).order_by('-updated')[0:1]
+            if investor_bank_account.exists():
+                investor_bank_account = investor_bank_account.get()
+
+            else:
+                raise forms.ValidationError(
+                    "No hay cuenta bancaria registrada para la cuenta de operación. Operación Cancelada!!")
+            #### Send to Treasury Paysheet
+
+            sns = SnsServiceLibrary()
+
+            sns_topic = generate_sns_topic(settings.SNS_TREASURY_PAYSHEET)
+
+            arn = sns.get_arn_by_name(sns_topic)
+
+            attribute = {}  # sns.make_attributes(type='response', status='success')
+
+            payload = {
+                "origin_account": from_account_bank.bank_account_number,
+                "beneficiary_name": investor_bank_account.account_holder_name,
+                "document_number": investor_bank_account.account_holder_document_number,
+                "email": investor_bank_account.account_notification_email,
+                "message": "Pago a Inversionista",  # journal_transaction.description,
+                "destination_account": investor_bank_account.bank_account_number,
+
+
+                "transfer_amount": f'{investor_amount:.2f}',
+                # .format(transfer_amount)), #Decimal(transfer_amount, round(2))),
+                "currency_type": "CLP",
+                "paysheet_line_type": "investor",
+
+                "bank_code": investor_bank_account.bank_code
+            }
+            print(str(payload))
+
+            sns.push(arn, attribute, payload)
+
         return model_to_dict(journal)
