@@ -1,4 +1,5 @@
 from django.http import Http404
+import logging
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -110,6 +111,9 @@ class JournalOperationInvestmentTransaction(APIView):
 class JournalRequesterPaymentFromOperation(APIView):
 
     def post(self, request, format=None):
+        print("En View flag -1")
+        logging.getLogger("error_logger").error("View JournalRequesterPaymentFromOperation")
+
 
         serializer = JournalRequesterPaymentFromOperationTransactionSerializer(data=request.data)
 

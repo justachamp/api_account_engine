@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+from .logger_setting import *
+
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -234,3 +236,4 @@ SNS_COUNTRY_PREFIX = os.environ.get('SNS_COUNTRY_PREFIX')
 SNS_ENV_PREFIX = os.environ.get('SNS_ENV_PREFIX')
 SNS_LOAN_PAYMENT = os.environ.get('SNS_LOAN_PAYMENT')
 SNS_TREASURY_PAYSHEET = os.environ.get('SNS_TREASURY_PAYSHEET_REGISTRY')
+

@@ -332,6 +332,7 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
             raise ValidationError("Must be positive")
 
     def validate(self, data):
+        print("En Seriazers validate flag -2")
 
         # Validar que los montos cuadren en total
         """
@@ -373,7 +374,7 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
                                                 external_account_type_id=validated_data['requester_account_type'])
 
 
-
+        print("Previo a Servicio Flag 1")
 
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {

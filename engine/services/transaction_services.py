@@ -342,6 +342,7 @@ class RequesterPaymentFromOperation(Service):
     # 4- que los costos no sean mayor que el monto a transferir al solicitante
 
     def clean(self):
+        print("clean flga 2")
         cleaned_data = super().clean()
         total_amount = cleaned_data.get("total_amount")
         transfer_amount = cleaned_data.get("transfer_amount")
@@ -380,6 +381,7 @@ class RequesterPaymentFromOperation(Service):
         return cleaned_data
 
     def process(self):
+        print("Process flga 3")
         SEND_SNS=True
 
         # TODO: modificar este valor en duro
