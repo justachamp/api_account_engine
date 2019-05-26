@@ -1,0 +1,2 @@
+2019-05-26 18:42:32,459  ERROR  41332  /Users/kpeet/Documents/kimchi-project/api_account_engine/api/v1/journal_transactions/views.py  post  115  View JournalRequesterPaymentFromOperation  
+2019-05-26 19:08:07,591  ERROR  57135  /Users/kpeet/Documents/kimchi-project/api_account_engine/api/v1/journal_transactions/views.py  post  115  View JournalRequesterPaymentFromOperation  
