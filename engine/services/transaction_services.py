@@ -342,7 +342,7 @@ class RequesterPaymentFromOperation(Service):
     # 4- que los costos no sean mayor que el monto a transferir al solicitante
 
     def clean(self):
-        print("clean flga 2")
+        logging.getLogger("error_logger").error("clean flga 2")
         cleaned_data = super().clean()
         total_amount = cleaned_data.get("total_amount")
         transfer_amount = cleaned_data.get("transfer_amount")
@@ -381,7 +381,7 @@ class RequesterPaymentFromOperation(Service):
         return cleaned_data
 
     def process(self):
-        print("Process flga 3")
+        logging.getLogger("error_logger").error("Process flga 3")
         SEND_SNS=True
 
         # TODO: modificar este valor en duro
@@ -465,12 +465,13 @@ class RequesterPaymentFromOperation(Service):
             }
         )
 
-
-
+        logging.getLogger("error_logger").error("PREVIO ENVIO SNS")
 
         if SEND_SNS:
+
             # Send SNS to confirm the payment (to financing)
             sns = SnsServiceLibrary()
+
             sns_topic = generate_sns_topic(settings.SNS_LOAN_PAYMENT)
 
             arn = sns.get_arn_by_name(sns_topic)
@@ -479,7 +480,10 @@ class RequesterPaymentFromOperation(Service):
 
             payload = {'operation_id': external_operation_id}
 
-            sns.push(arn, attribute, payload)
+            logging.getLogger("error_logger").error("SNS_LOAN_PAYMENT ::: payload")
+            logging.getLogger("error_logger").error(str(payload))
+
+            #sns.push(arn, attribute, payload)
 
             # Send to Treasury - Paysheet
 
@@ -505,6 +509,8 @@ class RequesterPaymentFromOperation(Service):
                  "paysheet_line_type": "requestor",
                  "bank_code" : to_requestor_account_bank.bank_code
             }
+            logging.getLogger("error_logger").error("SNS_TREASURY_PAYSHEET ::: payload")
+            logging.getLogger("error_logger").error(str(payload))
 
 
             sns.push(arn, attribute, payload)

@@ -13,6 +13,7 @@ from engine.services.transaction_services import FinanceOperationByInvestmentTra
 from django.core.exceptions import ObjectDoesNotExist
 from collection_module.services.collection_services import CreateCollectingRecordService, PayerRecordService
 from django import forms
+import logging
 
 
 class FromAccountSerializer(serializers.Serializer):
@@ -332,7 +333,7 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
             raise ValidationError("Must be positive")
 
     def validate(self, data):
-        print("En Seriazers validate flag -2")
+        logging.getLogger("error_logger").error("En Seriazers validate flag -2")
 
         # Validar que los montos cuadren en total
         """
@@ -373,8 +374,7 @@ class JournalRequesterPaymentFromOperationTransactionSerializer(serializers.Seri
         requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
                                                 external_account_type_id=validated_data['requester_account_type'])
 
-
-        print("Previo a Servicio Flag 1")
+        logging.getLogger("error_logger").error("Previo a Servicio Flag 1")
 
         requester_payment_from_operation = RequesterPaymentFromOperation.execute(
             {
