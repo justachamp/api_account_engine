@@ -489,6 +489,8 @@ class RequesterPaymentFromOperation(Service):
 
             sns = SnsServiceLibrary()
 
+            logging.getLogger("error_logger").error("SNS_TREASURY_PAYSHEET ::: sns_topic SNS_TREASURY_PAYSHEET")
+            logging.getLogger("error_logger").error(settings.SNS_TREASURY_PAYSHEET)
             sns_topic = generate_sns_topic(settings.SNS_TREASURY_PAYSHEET)
 
             arn = sns.get_arn_by_name(sns_topic)
@@ -504,7 +506,7 @@ class RequesterPaymentFromOperation(Service):
                  "email": to_requestor_account_bank.account_notification_email,
                  "message": "Pago a Solicitante",#journal_transaction.description,
                  "destination_account": to_requestor_account_bank.bank_account_number,
-                 "transfer_amount": 1000.00, #f'{transfer_amount:.2f}',#.format(transfer_amount)), #Decimal(transfer_amount, round(2))),
+                 "transfer_amount": f'{transfer_amount:.2f}',#.format(transfer_amount)), #Decimal(transfer_amount, round(2))),
                  "currency_type": "CLP",
                  "paysheet_line_type": "requestor",
                  "bank_code" : to_requestor_account_bank.bank_code
