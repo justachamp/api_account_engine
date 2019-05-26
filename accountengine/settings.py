@@ -236,3 +236,30 @@ SNS_COUNTRY_PREFIX = os.environ.get('SNS_COUNTRY_PREFIX')
 SNS_ENV_PREFIX = os.environ.get('SNS_ENV_PREFIX')
 SNS_LOAN_PAYMENT = os.environ.get('SNS_LOAN_PAYMENT')
 SNS_TREASURY_PAYSHEET = os.environ.get('SNS_TREASURY_PAYSHEET_REGISTRY')
+
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'large': {
+            'format': '%(asctime)s  %(levelname)s  %(process)d  %(pathname)s  %(funcName)s  %(lineno)d  %(message)s  '
+        }
+    },
+    'handlers': {
+        'errors_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'when': 'midnight',
+            'interval': 1,
+            'filename': 'logs/InfoLoggers.log',
+            'formatter': 'large',
+        },
+
+    },
+    'loggers': {
+        'error_logger': {
+            'handlers': ['errors_file'],
+            'level': 'INFO',
+            'propagate': False,
+        }
+    },
+}
