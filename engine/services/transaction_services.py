@@ -738,6 +738,10 @@ class InvestorPaymentFromOperation(Service):
         investor_payments = self.cleaned_data['investors']
         instalment = self.cleaned_data['instalment']
         asset_type = self.cleaned_data['asset_type']
+        logging.getLogger("error_logger").error("Services process:::" )
+        logging.getLogger("error_logger").error("investor_payments:::"+str(investor_payments))
+        logging.getLogger("error_logger").error("instalment:::"+str(instalment))
+
 
         #Datos de cuenta Cumplo
         cumplo_operation_bank_account = Account.objects.get(external_account_type_id=4, external_account_id=2)

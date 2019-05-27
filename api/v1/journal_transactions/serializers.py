@@ -524,8 +524,14 @@ class JournalInvestorPaymentFromInstalmentOperationSerializer(serializers.Serial
         # requester_account = Account.objects.get(external_account_id=validated_data['requester_account_id'],
         #                                         external_account_type_id=validated_data['requester_account_type'])
 
+        logging.getLogger("error_logger").error("JournalInvestorPaymentFromInstalmentOperationSerializer::: create")
+
+
 
         operation = OperationAccount.objects.get(external_account_id=validated_data['external_operation_id'])
+
+        logging.getLogger("error_logger").error("external_operation_id:::"+validated_data['external_operation_id'])
+
 
 
         new_instalment = Instalment()
